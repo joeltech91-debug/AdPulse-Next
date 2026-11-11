@@ -6,23 +6,27 @@ type Event={slug:string;type:string;name:string;at:string;bot:boolean;duplicate:
 type Alert={slug:string;total:number;bots:number;repeated:number;last_seen:string};
 type Conversion={slug:string;name:string;value:number;currency:string;at:string};
 type LinkItem={slug:string;target:string};
+type GeoCountry={code:string;name:string;clicks:number;percent:number};
+type GeoContinent={code:string;name:string;clicks:number;percent:number};
+type Geography={total:number;countries:GeoCountry[];continents:GeoContinent[];unknown:number;unknownPercent:number};
+const emptyGeo:Geography={total:0,countries:[],continents:[],unknown:0,unknownPercent:0};
 const empty:Summary={clicks:0,clicks_30d:0,mobile:0,desktop:0,conversions:0,suspicious:0,daily:[]};
 const card="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm";
 function fmt(n:number){return Number(n||0).toLocaleString("fr-FR");}
 function date(v:string){return new Date(v).toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}
 export default function AnalyticsPage(){
- const [summary,setSummary]=useState<Summary>(empty),[live,setLive]=useState<Event[]>([]),[fraud,setFraud]=useState<Alert[]>([]),[conversions,setConversions]=useState<Conversion[]>([]),[links,setLinks]=useState<LinkItem[]>([]),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[lastUpdated,setLastUpdated]=useState("");
+ const [summary,setSummary]=useState<Summary>(empty),[geography,setGeography]=useState<Geography>(emptyGeo),[live,setLive]=useState<Event[]>([]),[fraud,setFraud]=useState<Alert[]>([]),[conversions,setConversions]=useState<Conversion[]>([]),[links,setLinks]=useState<LinkItem[]>([]),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[lastUpdated,setLastUpdated]=useState("");
  const [form,setForm]=useState({slug:"",event_name:"purchase",value:"0",currency:"USD"});
  const rate=useMemo(()=>summary.clicks_30d?((summary.conversions/summary.clicks_30d)*100).toFixed(1):"0.0",[summary]);
  const load=useCallback(async()=>{
   try{
-   const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions"];
+   const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions","/api/analytics/geography"];
    const responses=await Promise.all(paths.map(p=>fetch(p,{cache:"no-store"})));
    if(responses.some(r=>r.status===401)){location.href="/connexion";return;}
    if(responses.some(r=>r.status===403)){setError("Les Analytics sont disponibles à partir du forfait Avancé à 19 $.");setLoading(false);return;}
    const failed=responses.find(r=>!r.ok);if(failed)throw new Error("Certaines données Analytics sont indisponibles. Réessayez dans quelques instants.");
-   const [s,l,f,c]=await Promise.all(responses.map(r=>r.json()));
-   setSummary({...empty,...s,daily:s.daily||[]});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
+   const [s,l,f,c,g]=await Promise.all(responses.map(r=>r.json()));
+   setSummary({...empty,...s,daily:s.daily||[]});setGeography({...emptyGeo,...g});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
    setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");
   }catch(e){setError(e instanceof Error?e.message:"Impossible de charger les analyses.");}
   finally{setLoading(false);}
@@ -39,6 +43,23 @@ export default function AnalyticsPage(){
     {[[ "Visites suivies",fmt(summary.clicks),"Depuis la création de vos liens"],["Clics valides · 30 jours",fmt(summary.clicks_30d),"Hors bots et répétitions"],["Conversions",fmt(summary.conversions),`Taux de conversion : ${rate} %`],["Trafic suspect",fmt(summary.suspicious),"Bots et visites répétitives"]].map(([t,v,d])=><article className={card} key={t}><p className="text-sm font-semibold text-base-content/65">{t}</p><strong className="mt-2 block text-3xl font-extrabold">{v}</strong><p className="mt-1 text-xs text-base-content/55">{d}</p></article>)}
    </section>
    <section className="mb-5 grid gap-3 sm:grid-cols-2"><article className={card}><p className="text-sm text-base-content/60">Visites sur téléphone</p><strong className="mt-1 block text-2xl">{fmt(summary.mobile)}</strong><p className="text-xs text-base-content/60">{summary.clicks?((summary.mobile/summary.clicks)*100).toFixed(1):"0.0"} % des clics suivis</p></article><article className={card}><p className="text-sm text-base-content/60">Visites sur ordinateur</p><strong className="mt-1 block text-2xl">{fmt(summary.desktop)}</strong><p className="text-xs text-base-content/60">{summary.clicks?((summary.desktop/summary.clicks)*100).toFixed(1):"0.0"} % des clics suivis</p></article></section>
+      <section className={card+" mb-5"}>
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+     <div><p className="text-xs font-bold uppercase tracking-widest text-primary">Audience</p><h2 className="text-xl font-bold">Origine géographique des clics</h2><p className="mt-1 text-sm text-base-content/60">Répartition par continent et pays · clics valides depuis le début du suivi géographique.</p></div>
+     <span className="badge badge-outline">{fmt(geography.total)} clic(s) analysé(s)</span>
+    </div>
+    {geography.total>0?<div className="grid gap-6 lg:grid-cols-2">
+     <div><h3 className="mb-3 font-semibold">Par continent</h3><div className="space-y-4">
+      {geography.continents.map(item=><div key={item.code}><div className="mb-1 flex justify-between gap-3 text-sm"><span className="font-medium">{item.name}</span><span className="text-base-content/65">{item.percent}% · {fmt(item.clicks)}</span></div><div className="h-2.5 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-primary" style={{width:String(Math.min(100,item.percent))+"%"}}/></div></div>)}
+      {geography.unknown>0&&<div><div className="mb-1 flex justify-between text-sm"><span className="font-medium text-base-content/65">Pays non déterminé</span><span className="text-base-content/65">{geography.unknownPercent}% · {fmt(geography.unknown)}</span></div><div className="h-2.5 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-base-300" style={{width:String(Math.min(100,geography.unknownPercent))+"%"}}/></div></div>}
+     </div></div>
+     <div><h3 className="mb-3 font-semibold">Par pays</h3><div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+      {geography.countries.map(item=><div key={item.code}><div className="mb-1 flex justify-between gap-3 text-sm"><span className="min-w-0 truncate font-medium">{item.name}</span><span className="shrink-0 text-base-content/65">{item.percent}% · {fmt(item.clicks)}</span></div><div className="h-2 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-secondary" style={{width:String(Math.min(100,item.percent))+"%"}}/></div></div>)}
+      {!geography.countries.length&&<p className="text-sm text-base-content/60">Les pays seront affichés dès que leur localisation sera disponible.</p>}
+     </div></div>
+    </div>:<p className="rounded-xl bg-base-200 px-4 py-8 text-center text-sm text-base-content/65">Les données géographiques apparaîtront à mesure que vos prochains clics seront enregistrés.</p>}
+    <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise.</p>
+   </section>
    <section className="mb-5 grid gap-5 lg:grid-cols-2">
     <article className={card}><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-primary">Tendance</p><h2 className="text-lg font-bold">Visites sur 14 jours</h2></div><span className="badge badge-outline">Clics valides</span></div>
      {summary.daily.length?<div className="flex h-56 items-end gap-1 border-b border-base-300 pb-2 sm:gap-2">{summary.daily.map(x=><div key={x.date} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"><span className="text-[10px] text-base-content/60">{x.clicks}</span><div className="flex h-40 w-full items-end rounded-t-md bg-base-200"><div className="w-full rounded-t-md bg-primary" style={{height:`${Math.max(3,(Number(x.clicks)/max)*100)}%`}}/></div><span className="text-[9px] text-base-content/55">{new Date(x.date).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})}</span></div>)}</div>:<p className="py-12 text-center text-sm text-base-content/60">Les tendances apparaîtront à mesure que vos clics seront enregistrés.</p>}
