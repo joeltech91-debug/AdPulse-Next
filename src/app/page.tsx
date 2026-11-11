@@ -27,8 +27,7 @@ export default async function HomePage() {
           <a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a>
         </nav>
         <div className="ml-auto flex gap-2 md:ml-8">
-          <a className="btn btn-ghost btn-sm" href="/connexion">Connexion</a>
-          <a className="btn btn-primary btn-sm rounded-lg px-4" href="/inscription">Commencer</a>
+          {signedIn ? <a className="btn btn-primary btn-sm rounded-lg px-4" href="/dashboard">Mon tableau de bord</a> : <><a className="btn btn-ghost btn-sm" href="/connexion">Connexion</a><a className="btn btn-primary btn-sm rounded-lg px-4" href="/inscription">Commencer</a></>}
         </div>
       </header>
 
