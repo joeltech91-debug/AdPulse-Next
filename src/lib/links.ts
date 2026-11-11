@@ -28,7 +28,8 @@ export async function createLinkForUser(userId: string, target: string) {
       slug = "";
     }
     if (!slug) throw new Error("slug_generation_failed");
-    // Generated short links must resolve through this Next.js app, whose redirect handler reads the latest MySQL destination. MY_URL may still point to the legacy Go redirect service, so it is only a fallback.\n    const base = (process.env.NEXT_PUBLIC_APP_URL || process.env.FRONT || process.env.MY_URL || "http://localhost:3000").replace(/\/$/, "");
+    // Generated short links must resolve through this Next.js app, whose redirect handler reads the latest MySQL destination. MY_URL may still point to the legacy Go redirect service, so it is only a fallback.
+    const base = (process.env.NEXT_PUBLIC_APP_URL || process.env.FRONT || process.env.MY_URL || "http://localhost:3000").replace(/\/$/, "");
     await conn.execute("INSERT INTO link_Tracker_Link (user_id,url,slug,urlGenerate,click_total,click_mobile,click_pc) VALUES (?,?,?,?,0,0,0)", [userId, target, slug, `${base}/link/${slug}`]);
     await conn.commit();
     return { slug, shortUrl: `${base}/link/${slug}`, target };
