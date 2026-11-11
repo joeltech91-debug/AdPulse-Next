@@ -1,34 +1,21 @@
 # AdPulse Next
 
-Nouvelle application full-stack AdPulse basée sur Next.js, Tailwind CSS et DaisyUI.
+Application full-stack AdPulse basée sur Next.js, Tailwind CSS et DaisyUI.
 
-## Objectifs de migration
-
-- Remplacer progressivement le frontend Vue/Vite et l'API Go par une application Next.js unifiée.
+## Objectifs
+- Remplacer progressivement le frontend Vue/Vite et l'API Go par Next.js App Router.
 - Conserver la base MySQL existante et ses données.
-- Préserver les parcours de connexion, Google, création de liens courts, redirection et suivi des clics.
-- Reprendre les abonnements et paiements existants sans activer un forfait avant confirmation serveur du prestataire.
-- Migrer les analytics, conversions, suivi live, détection des bots et visiteurs répétitifs, connexion Meta et rapports.
-- Garder les dépôts historiques intacts pendant toute la migration.
+- Préserver les liens courts, clics, conversions, analytics, abonnements, paiements, Google et Meta.
+- Garder les dépôts historiques intacts pendant la migration.
 
-## Architecture cible
+## Architecture réellement utilisée sur cette branche
+- Next.js App Router (TypeScript) pour l'interface et les Route Handlers.
+- Tailwind CSS 4 + DaisyUI 5.
+- MySQL via `mysql2/promise`, avec SQL paramétré et tables historiques.
+- Sessions serveur signées HS256, cookies HttpOnly.
+- Zod pour valider les entrées et bcryptjs pour vérifier les hash bcrypt historiques.
 
-- Next.js App Router (TypeScript)
-- Tailwind CSS + DaisyUI
-- Routes serveur Next.js pour les API et les webhooks
-- Prisma comme couche d'accès MySQL, après introspection de la base existante
-- Authentification serveur avec sessions sécurisées
-- Déploiement compatible Vercel
-
-## Sécurité des données
-
-**Aucune migration destructive n'est autorisée.** Ne pas exécuter `prisma migrate reset`, ne pas supprimer/recréer les tables existantes et ne pas écraser les données utilisateur.
-
-Avant toute migration de schéma :
-1. Faire une sauvegarde de la base.
-2. Travailler sur une copie ou un environnement staging.
-3. Introspecter le schéma existant avec `prisma db pull`.
-4. Vérifier les clés, types et relations réels avant d'écrire des migrations additives.
+Le client Prisma n'est pas utilisé sur cette branche : l'accès SQL direct évite de supposer un schéma Prisma tant qu'une copie de la base n'a pas été introspectée.
 
 ## Abonnements connus
 
@@ -39,31 +26,39 @@ Avant toute migration de schéma :
 | Advanced – 19 $ | 3 | 20 | 1 250 | Oui |
 | Unlimited – 59 $ | 4 | Illimité | Illimité | Oui |
 
-Les abonnements payants durent 30 jours selon le comportement actuel. À expiration, le compte revient à l'offre gratuite. Les anciens abonnements payants dont la date de validité est encore future doivent conserver l'accès accordé par la logique historique, jusqu'à leur expiration.
+Les abonnements payants durent 30 jours selon le comportement actuel. À expiration, le compte revient à l'offre gratuite. Les anciens abonnements payants encore valides conservent leur accès legacy jusqu'à leur expiration.
 
-## Configuration des variables
+## Variables d'environnement
+Le fichier `.env.example` est un modèle sans secrets. Utiliser `.env.local` localement et les variables privées de l'hébergeur en production.
 
-Le fichier `.env.example` est un **modèle sans secrets**. Les valeurs réelles doivent être saisies dans `.env.local` en développement et dans les variables d'environnement du fournisseur d'hébergement en production.
-
-| Variable fournie par l'ancien environnement | Cible / usage Next.js |
+| Variable | Usage |
 |---|---|
-| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD` | Composer `DATABASE_URL` au format MySQL pour Prisma. Encoder les caractères réservés du mot de passe dans l'URL. Les variables séparées sont conservées temporairement pour faciliter le portage. |
-| `API_URL`, `API_KEY` | MakeTou côté serveur. La valeur actuelle de `API_URL` ressemble déjà à un endpoint `/stores/cart` : vérifier le contrat exact avant d'ajouter `/checkout` ou un autre chemin. |
-| `ID_PRODUIT` | Produit du forfait 9 $ : conserver la variable existante, sans ID codé en dur. |
-| `ID_PRODUIT_19`, `ID_PRODUIT_59` | Produits 19 $ et 59 $ déjà documentés pour la migration. |
-| `FRONT`, `MY_URL` | URL publique frontend et URL backend/callback. En migration, les deux peuvent pointer vers l'application Next.js selon le contrat du prestataire. |
-| `META_APP_ID` | Peut être exposé sous `NEXT_PUBLIC_META_APP_ID` si nécessaire au SDK navigateur. |
-| `META_APP_SECRET` | Secret Meta exclusivement serveur ; ne jamais utiliser le préfixe `NEXT_PUBLIC_`. |
-| `META_REDIRECT_URI` | Callback OAuth Meta à adapter à la future route Next.js. |
-| `COOKIE` | Variable legacy à conserver uniquement si le code historique confirme son rôle. Ne pas la confondre automatiquement avec `AUTH_SECRET`. |
-| `EMAIL` | Adresse historique ; confirmer si elle sert à l'envoi d'e-mails ou à un compte technique avant de l'intégrer. |
-| `PASSWORD` | Non reprise : nom trop générique, usage non confirmé. Ne pas la réutiliser comme secret d'authentification sans vérifier le code source. |
-| `ENVIRONNEMENT` | Remplacée par la convention `NODE_ENV` de Next.js, après vérification des branches conditionnelles legacy. |
+| `DATABASE_URL` ou `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_DATABASE` | Connexion MySQL serveur. |
+| `AUTH_SECRET` | Secret de signature des sessions, 32 caractères aléatoires minimum. |
+| `API_URL`, `API_KEY` | Fournisseur de paiement. Vérifier le format exact de `API_URL` avec le fournisseur avant production ; ne pas supposer que le chemin `/checkout` doit être ajouté. |
+| `ID_PRODUIT` | Produit 9 $ ; conserver la variable existante sans identifiant codé en dur. |
+| `ID_PRODUIT_19`, `ID_PRODUIT_59` | Produits 19 $ et 59 $. |
+| `FRONT`, `MY_URL` | URL publique de l'application et URL de callback. |
+| `GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Vérification serveur et bouton Google. |
+| `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI` | OAuth Meta. Le secret reste côté serveur. |
 
-Le fichier de production partagé contient des secrets. Ils doivent être renouvelés puis saisis uniquement dans les variables privées de l'hébergement. Ne jamais committer `.env`, `.env.local`, un mot de passe ou une clé API.
+Ne jamais committer de mot de passe, clé API, jeton OAuth, `.env` ou `.env.local`. Les identifiants Meta historiques doivent être confirmés dans la console Meta avant déploiement.
 
-Les identifiants Google ne figuraient pas dans le fichier transmis : `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` restent donc à renseigner après vérification de la configuration OAuth existante.
+## Fonctionnalités déjà portées dans la branche
+- Inscription et connexion e-mail, Google, sessions sécurisées.
+- Dashboard et gestion de liens courts.
+- Redirection et tracking clics, mobile/desktop, bots et visiteurs répétitifs.
+- Quotas et plans, checkout et confirmation serveur avant activation.
+- Analytics résumé, live, fraude, conversions et rapport JSON.
+- OAuth Meta et lecture des annonces.
 
-## État
+## Garde-fous de migration
+Aucune migration destructive n'est autorisée. Ne pas exécuter `DROP`, `TRUNCATE`, `prisma migrate reset` ni recréer les tables historiques.
 
-Le dépôt initialise le socle documentaire et technique. Les intégrations et la migration fonctionnelle doivent être ajoutées par étapes et validées contre la vraie structure MySQL et les contrats API historiques.
+Le script `database/bootstrap.sql` ne crée que les tables additives d'abonnement et d'événements via `CREATE TABLE IF NOT EXISTS`. L'exécuter uniquement sur une copie/staging après comparaison des colonnes réelles.
+
+## État et limites
+- Le workflow GitHub Actions n'a pas encore obtenu de runner ; typecheck, lint et build restent à confirmer.
+- Tester les colonnes MySQL, les paiements avec le fournisseur et les OAuth Google/Meta sur staging.
+- Les rapports automatiques par e-mail, les pages administrateur et les guides marketing ne sont pas encore migrés.
+- Ne basculer le domaine qu'après sauvegarde et tests de non-régression.
