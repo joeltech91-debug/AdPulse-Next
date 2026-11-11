@@ -1,7 +1,2 @@
-"use client";
-import {useEffect,useState} from "react";
-import Link from "next/link";
-type Ad={id:string;name:string;status:string;insights?:{data?:{spend:string;impressions:string;clicks:string;cpc:string;ctr:string}[]}};
-export default function MetaPage(){const[ads,setAds]=useState<Ad[]>([]),[error,setError]=useState(""),[loading,setLoading]=useState(true);
-useEffect(()=>{fetch("/api/meta/ads",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error==="meta_not_connected"?"Connectez d'abord votre compte Meta depuis le tableau de bord.":"Impossible de récupérer les publicités Meta.");setAds(d.ads||[]);}).catch(e=>setError(e.message)).finally(()=>setLoading(false));},[]);
-return <main className="min-h-screen bg-base-200 p-4 md:p-8"><div className="mx-auto max-w-6xl"><Link href="/dashboard" className="link link-primary">← Tableau de bord</Link><h1 className="my-4 text-3xl font-bold">Publicités Meta</h1>{loading&&<span className="loading loading-spinner"/>}{error&&<div className="alert alert-info">{error}</div>}<div className="grid gap-4 md:grid-cols-2">{ads.map(ad=>{const i=ad.insights?.data?.[0];return <article key={ad.id} className="card bg-base-100 shadow"><div className="card-body"><h2 className="card-title">{ad.name}</h2><span className="badge badge-outline">{ad.status}</span><div className="grid grid-cols-2 gap-3 text-sm"><p>Dépenses : {i?.spend||"0"}</p><p>Impressions : {i?.impressions||"0"}</p><p>Clics : {i?.clicks||"0"}</p><p>CPC : {i?.cpc||"0"}</p><p>CTR : {i?.ctr||"0"}%</p></div></div></article>})}</div>{!loading&&!error&&!ads.length&&<p>Aucune publicité renvoyée par ce compte.</p>}</div></main>}
+import { redirect } from "next/navigation";
+export default function MetaPage(){redirect("/dashboard");}
