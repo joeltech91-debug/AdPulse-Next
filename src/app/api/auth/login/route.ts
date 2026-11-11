@@ -1,3 +1,4 @@
+import { ensureUserSubscription } from "@/lib/subscriptions";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
     const [users] = await db.execute<RowDataPacket[]>("SELECT id,password FROM user_Tracker_Link WHERE email=? LIMIT 1", [input.email]);
     const user = users[0];
     if (!user || !user.password || !(await bcrypt.compare(input.password, String(user.password)))) return jsonError("invalid_credentials", 401);
-    await db.execute("INSERT IGNORE INTO user_subscriptions (user_id) VALUES (?)", [user.id]);
+    await ensureUserSubscription(String(user.id));
     await createSession(String(user.id));
     return privateJson({ ok: true });
   } catch (e) {
