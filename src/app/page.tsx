@@ -22,6 +22,7 @@ export default function HomePage() {
         <nav className="ml-auto hidden items-center gap-8 text-sm font-semibold text-base-content/65 md:flex">
           <a href="#features" className="hover:text-primary">Fonctionnalités</a>
           <a href="#pricing" className="hover:text-primary">Tarifs</a>
+          <a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a>
         </nav>
         <div className="ml-auto flex gap-2 md:ml-8">
           <a className="btn btn-ghost btn-sm" href="/connexion">Connexion</a>
@@ -92,7 +93,7 @@ export default function HomePage() {
 
       <footer className="border-t border-base-300 bg-base-100">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-base-content/55 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span className="font-bold text-base-content">AdPulse</span><span>© {new Date().getFullYear()} AdPulse. Tous droits réservés.</span>
+          <span className="font-bold text-base-content">AdPulse</span><div className="flex flex-wrap items-center gap-4"><a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a><span>© {new Date().getFullYear()} AdPulse. Tous droits réservés.</span></div>
         </div>
       </footer>
     </main>
