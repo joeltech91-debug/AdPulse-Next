@@ -45,11 +45,14 @@ export async function GET() {
       percent: total ? Number(((clicks / total) * 100).toFixed(1)) : 0,
     })).sort((a, b) => b.clicks - a.clicks);
     const known = countries.reduce((sum, item) => sum + item.clicks, 0);
+    const continentKnown = continents.reduce((sum, item) => sum + item.clicks, 0);
 
     return privateJson({
       total, countries, continents,
       unknown: Math.max(0, total - known),
       unknownPercent: total ? Number((((total - known) / total) * 100).toFixed(1)) : 0,
+      continentUnknown: Math.max(0, total - continentKnown),
+      continentUnknownPercent: total ? Number((((total - continentKnown) / total) * 100).toFixed(1)) : 0,
     });
   } catch (error) {
     console.error("analytics geography failed", error);
