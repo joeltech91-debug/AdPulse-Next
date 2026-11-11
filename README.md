@@ -41,10 +41,29 @@ Avant toute migration de schéma :
 
 Les abonnements payants durent 30 jours selon le comportement actuel. À expiration, le compte revient à l'offre gratuite. Les anciens abonnements payants dont la date de validité est encore future doivent conserver l'accès accordé par la logique historique, jusqu'à leur expiration.
 
-## Configuration
+## Configuration des variables
 
-Voir `.env.example`. Ne jamais committer `.env.local` ni de secrets.
+Le fichier `.env.example` est un **modèle sans secrets**. Les valeurs réelles doivent être saisies dans `.env.local` en développement et dans les variables d'environnement du fournisseur d'hébergement en production.
+
+| Variable fournie par l'ancien environnement | Cible / usage Next.js |
+|---|---|
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USER`, `DB_PASSWORD` | Composer `DATABASE_URL` au format MySQL pour Prisma. Encoder les caractères réservés du mot de passe dans l'URL. Les variables séparées sont conservées temporairement pour faciliter le portage. |
+| `API_URL`, `API_KEY` | MakeTou côté serveur. La valeur actuelle de `API_URL` ressemble déjà à un endpoint `/stores/cart` : vérifier le contrat exact avant d'ajouter `/checkout` ou un autre chemin. |
+| `ID_PRODUIT` | Produit du forfait 9 $ : conserver la variable existante, sans ID codé en dur. |
+| `ID_PRODUIT_19`, `ID_PRODUIT_59` | Produits 19 $ et 59 $ déjà documentés pour la migration. |
+| `FRONT`, `MY_URL` | URL publique frontend et URL backend/callback. En migration, les deux peuvent pointer vers l'application Next.js selon le contrat du prestataire. |
+| `META_APP_ID` | Peut être exposé sous `NEXT_PUBLIC_META_APP_ID` si nécessaire au SDK navigateur. |
+| `META_APP_SECRET` | Secret Meta exclusivement serveur ; ne jamais utiliser le préfixe `NEXT_PUBLIC_`. |
+| `META_REDIRECT_URI` | Callback OAuth Meta à adapter à la future route Next.js. |
+| `COOKIE` | Variable legacy à conserver uniquement si le code historique confirme son rôle. Ne pas la confondre automatiquement avec `AUTH_SECRET`. |
+| `EMAIL` | Adresse historique ; confirmer si elle sert à l'envoi d'e-mails ou à un compte technique avant de l'intégrer. |
+| `PASSWORD` | Non reprise : nom trop générique, usage non confirmé. Ne pas la réutiliser comme secret d'authentification sans vérifier le code source. |
+| `ENVIRONNEMENT` | Remplacée par la convention `NODE_ENV` de Next.js, après vérification des branches conditionnelles legacy. |
+
+Le fichier de production partagé contient des secrets. Ils doivent être renouvelés puis saisis uniquement dans les variables privées de l'hébergement. Ne jamais committer `.env`, `.env.local`, un mot de passe ou une clé API.
+
+Les identifiants Google ne figuraient pas dans le fichier transmis : `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` restent donc à renseigner après vérification de la configuration OAuth existante.
 
 ## État
 
-Cette branche initialise le socle documentaire. Les intégrations et la migration fonctionnelle doivent être ajoutées par étapes et validées contre la vraie structure MySQL et les contrats API historiques.
+Le dépôt initialise le socle documentaire et technique. Les intégrations et la migration fonctionnelle doivent être ajoutées par étapes et validées contre la vraie structure MySQL et les contrats API historiques.
