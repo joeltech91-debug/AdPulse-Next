@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { recordClick } from "@/lib/tracking";
 import type { RowDataPacket } from "mysql2/promise";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const runtime = "nodejs";
 export async function GET(request: Request, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
   if (!/^[a-f0-9]{6,32}$/i.test(slug)) return NextResponse.redirect(new URL("/",request.url));
@@ -23,7 +27,7 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     // the owner; prevent browsers and intermediary caches from reusing an old 302.
     return NextResponse.redirect(target, {
       status: 302,
-      headers: { "Cache-Control": "no-store, no-cache, must-revalidate, private" }
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate, private", "Pragma": "no-cache", "Expires": "0", "Vary": "*" }
     });
   } catch (e) { console.error("short link lookup failed",e); return NextResponse.redirect(new URL("/",request.url)); }
 }
