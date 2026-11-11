@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+:root {
+  color-scheme: light;
+  --background: #f7f8fc;
+  --foreground: #172033;
+}
+
+html { min-height: 100%; background: var(--background); }
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+* { box-sizing: border-box; }
