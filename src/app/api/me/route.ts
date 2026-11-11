@@ -1,3 +1,4 @@
+import { ensureUserSubscription } from "@/lib/subscriptions";
 import { getSessionUserId } from "@/lib/session";
 import { db } from "@/lib/db";
 import { jsonError, privateJson } from "@/lib/http";
@@ -6,8 +7,7 @@ export async function GET() {
   const userId = await getSessionUserId();
   if (!userId) return jsonError("unauthorized", 401);
   try {
-    await db.execute("INSERT IGNORE INTO user_subscriptions (user_id) VALUES (?)", [userId]);
-    await db.execute("UPDATE user_subscriptions SET plan='free',status='active',links_limit=1,clicks_limit=30,clicks_used=0,analytics_enabled=FALSE,expires_at=NULL WHERE user_id=? AND plan<>'free' AND expires_at IS NOT NULL AND expires_at<=NOW()", [userId]);
+    await ensureUserSubscription(userId);
     const [data] = await db.execute<RowDataPacket[]>(`SELECT u.id,u.name,u.first_name,u.full_name,u.email,u.status AS account_status,
       s.plan,s.status AS subscription_status,s.links_limit,s.clicks_limit,s.clicks_used,s.analytics_enabled,s.expires_at,
       (SELECT COUNT(*) FROM link_Tracker_Link l WHERE l.user_id=u.id) AS links_used
