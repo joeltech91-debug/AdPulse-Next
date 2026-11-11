@@ -1,3 +1,4 @@
+import { ensureUserSubscription } from "@/lib/subscriptions";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/session";
@@ -29,6 +30,7 @@ export async function POST(request:Request) {
         await conn.commit();
       } catch(e) { await conn.rollback(); throw e; } finally { conn.release(); }
     }
+    await ensureUserSubscription(userId);
     await createSession(userId);
     return privateJson({ok:true});
   } catch(e) { if(e instanceof z.ZodError) return jsonError("invalid_google_credential",400); console.error("Google auth failed",e); return jsonError("google_auth_unavailable",500); }
