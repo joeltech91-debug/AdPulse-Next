@@ -1,3 +1,4 @@
+import { getSessionUserId } from "@/lib/session";
 const features = [
   { icon: "↗", title: "Liens intelligents", text: "Créez des liens courts, propres et faciles à partager." },
   { icon: "◷", title: "Suivi en temps réel", text: "Visualisez l'activité et les performances de vos campagnes." },
@@ -11,7 +12,8 @@ const plans = [
   { name: "Unlimited", price: "59 $", detail: "Liens et clics illimités" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const signedIn = Boolean(await getSessionUserId());
   return (
     <main className="min-h-screen overflow-hidden">
       <header className="navbar mx-auto max-w-7xl px-5 py-5 lg:px-8">
