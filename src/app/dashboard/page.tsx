@@ -25,13 +25,24 @@ export default function DashboardPage(){
   }catch(err){setError(err instanceof Error?err.message:"Impossible de créer le lien UTM.");}
   finally{setBusy(false);}
  }
- function exportCsv(){
-  const quote=(value:unknown)=>`"${String(value??"").replaceAll('"','""')}"`;
-  const rows=[["Destination","Lien court","Clics totaux","Clics mobile","Clics ordinateur","Slug"],...links.map(x=>[x.destinationUrl,x.generatedUrl,x.clicks,x.mobileClicks,x.desktopClicks,x.slug])];
-  const csv="\uFEFF"+rows.map(row=>row.map(quote).join(";")).join("\r\n");
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const href=URL.createObjectURL(blob);
-  const a=document.createElement("a");a.href=href;a.download="adpulse-liens.csv";a.click();URL.revokeObjectURL(href);
+ async function exportCsv(){
+  try{
+   const all:Item[]=[];let offset=0;
+   while(true){
+    const response=await fetch(`/api/links?limit=100&offset=${offset}`,{cache:"no-store"});
+    if(!response.ok)throw new Error("Export indisponible.");
+    const data=await response.json();const batch=(data.links||[]) as Item[];
+    all.push(...batch);if(batch.length<100)break;offset+=100;
+   }
+   const quote=(value:unknown)=>`"${String(value??"").replaceAll('"','""')}"`;
+   const rows=[["Destination","Lien court","Clics totaux","Clics mobile","Clics ordinateur","Slug"],...all.map(x=>[x.destinationUrl,x.generatedUrl,x.clicks,x.mobileClicks,x.desktopClicks,x.slug])];
+   const csv="\\uFEFF"+rows.map(row=>row.map(quote).join(";")).join("\\r\\n");
+   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const href=URL.createObjectURL(blob);
+   const a=document.createElement("a");a.href=href;a.download="adpulse-liens.csv";a.click();URL.revokeObjectURL(href);
+   setNotice(`Export terminé : ${all.length} lien(s).`);
+  }catch(err){setError(err instanceof Error?err.message:"Export CSV impossible.");}
  }
+
  async function share(item:Item){setNotice("");try{if(navigator.share){await navigator.share({title:"Mon lien AdPulse",url:item.generatedUrl});setNotice("Lien partagé.");}else{await navigator.clipboard.writeText(item.generatedUrl);setNotice("Lien copié. Vous pouvez le coller où vous voulez.");}}catch(e){if(e instanceof Error&&e.name==="AbortError")return;try{await navigator.clipboard.writeText(item.generatedUrl);setNotice("Lien copié dans le presse-papiers.");}catch{setError("Partage indisponible sur ce navigateur. Copiez le lien manuellement : "+item.generatedUrl);}}}
  async function copy(item:Item){try{await navigator.clipboard.writeText(item.generatedUrl);setNotice("Lien copié dans le presse-papiers.");}catch{setError("Copie impossible. Sélectionnez le lien pour le copier.");}}
  async function remove(slug:string){if(!confirm("Supprimer ce lien ?"))return;const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE"});if(!r.ok){setError("Suppression impossible.");return;}setNotice("Lien supprimé.");await load();}
