@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const limit = Math.min(100, Math.max(1, Number(params.get("limit") || 50)));
   const offset = Math.max(0, Number(params.get("offset") || 0));
   try {
-    const [links] = await db.execute<RowDataPacket[]>(`SELECT url AS target,slug,urlGenerate AS shortUrl,click_total AS clicks,click_mobile AS mobileClicks,click_pc AS desktopClicks,created_at AS createdAt
+    const [links] = await db.execute<RowDataPacket[]>(`SELECT id, url AS destinationUrl, urlGenerate AS generatedUrl, slug, click_total AS clicks, click_mobile AS mobileClicks, click_pc AS desktopClicks, created_at AS createdAt
       FROM link_Tracker_Link WHERE user_id=? ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?`, [userId,limit,offset]);
     return privateJson({ links, limit, offset });
   } catch (e) { console.error("links list failed", e); return jsonError("links_unavailable", 500); }
@@ -37,41 +37,76 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const userId = await getSessionUserId();
   if (!userId) return jsonError("unauthorized", 401);
-  const schema = z.object({ slug: z.string().min(1).max(250), url: z.string().min(3).max(2048) });
+
+  // The database stores two separate values:
+  // - url: the original destination that can be edited
+  // - urlGenerate: the public short URL, which must never be edited
+  const schema = z.object({
+    id: z.number().int().positive(),
+    destinationUrl: z.string().min(3).max(2048),
+  });
+
   try {
-    const input = schema.parse(await request.json()), target = normalizeTarget(input.url);
-    if (target.length > 250) return jsonError("url_too_long",400);
+    const input = schema.parse(await request.json());
+    const destination = normalizeTarget(input.destinationUrl);
+    if (destination.length > 250) return jsonError("url_too_long", 400);
 
-    // Capture the generated short URL before changing the destination.
-    // The short URL is stable; only the destination column is editable.
-    const [existing] = await db.execute<RowDataPacket[]>(
-      "SELECT id, urlGenerate FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
-      [input.slug,userId]
-    );
-    if (!existing.length) return jsonError("link_not_found",404);
-    const originalShortUrl = String(existing[0].urlGenerate ?? "");
+    // Lock and identify the exact owned row by its immutable primary key.
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+      const [existing] = await conn.execute<RowDataPacket[]>(
+        "SELECT id, urlGenerate FROM link_Tracker_Link WHERE id=? AND user_id=? FOR UPDATE",
+        [input.id, userId]
+      );
+      if (!existing[0]) {
+        await conn.rollback();
+        return jsonError("link_not_found", 404);
+      }
 
-    // Deliberately update only url; never update slug or urlGenerate.
-    await db.execute(
-      "UPDATE link_Tracker_Link SET url=? WHERE slug=? AND user_id=?",
-      [target,input.slug,userId]
-    );
+      const generatedUrlBefore = String(existing[0].urlGenerate ?? "");
 
-    // Verify both the new destination and the unchanged generated short URL.
-    const [saved] = await db.execute<RowDataPacket[]>(
-      "SELECT url, urlGenerate FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
-      [input.slug,userId]
-    );
-    if (!saved[0] || String(saved[0].url) !== target) {
-      console.error("link destination update did not persist", { slug: input.slug, userId });
-      return jsonError("link_update_failed",500);
+      // Update ONLY the destination column. id, slug and urlGenerate remain untouched.
+      await conn.execute(
+        "UPDATE link_Tracker_Link SET url=? WHERE id=? AND user_id=?",
+        [destination, input.id, userId]
+      );
+
+      // Read the row again inside the same transaction before confirming success.
+      const [saved] = await conn.execute<RowDataPacket[]>(
+        "SELECT id, url, slug, urlGenerate FROM link_Tracker_Link WHERE id=? AND user_id=? LIMIT 1",
+        [input.id, userId]
+      );
+      if (
+        !saved[0] ||
+        String(saved[0].url) !== destination ||
+        String(saved[0].urlGenerate ?? "") !== generatedUrlBefore
+      ) {
+        await conn.rollback();
+        console.error("destination update verification failed", { linkId: input.id, userId });
+        return jsonError("link_update_failed", 500);
+      }
+
+      await conn.commit();
+      return privateJson({
+        updated: true,
+        id: Number(saved[0].id),
+        destinationUrl: String(saved[0].url),
+        generatedUrl: String(saved[0].urlGenerate ?? ""),
+        slug: String(saved[0].slug),
+      });
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
     }
-    if (String(saved[0].urlGenerate ?? "") !== originalShortUrl) {
-      console.error("generated short URL unexpectedly changed during destination update", { slug: input.slug, userId });
-      return jsonError("short_link_changed",500);
-    }
-    return privateJson({ updated: true, target: String(saved[0].url), shortUrl: originalShortUrl });
-  } catch (e) { if (e instanceof z.ZodError) return jsonError("invalid_payload",400); if (e instanceof Error && e.message==="invalid_url") return jsonError("invalid_url",400); console.error(e); return jsonError("link_update_failed",500); }
+  } catch (e) {
+    if (e instanceof z.ZodError) return jsonError("invalid_payload", 400);
+    if (e instanceof Error && e.message === "invalid_url") return jsonError("invalid_url", 400);
+    console.error("link destination update failed", e);
+    return jsonError("link_update_failed", 500);
+  }
 }
 export async function DELETE(request: Request) {
   const userId = await getSessionUserId();
