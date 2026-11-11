@@ -5,7 +5,7 @@ const features = [
   { icon: "◎", title: "Géographie de l'audience", text: "Identifiez les pays et continents qui génèrent vos clics pour mieux comprendre où se trouve votre audience." },
   { icon: "⌁", title: "Attribution UTM", text: "Comparez les sources, supports, campagnes et domaines référents pour mesurer l'origine de votre trafic." },
   { icon: "↗", title: "Conversions & valeur", text: "Suivez les achats, prospects, inscriptions et ajouts au panier, avec valeur et devise associées." },
-  { icon: "盾", title: "Détection anti-fraude", text: "Isolez les robots et répétitions détectés afin de distinguer le trafic valide des signaux suspects." },
+  { icon: "✓", title: "Détection anti-fraude", text: "Isolez les robots et répétitions détectés afin de distinguer le trafic valide des signaux suspects." },
   { icon: "▥", title: "Analyse multi-appareils", text: "Comparez les clics mobiles et ordinateur, consultez les tendances sur 14 jours et les indicateurs sur 30 jours." },
   { icon: "⇩", title: "Rapports exploitables", text: "Exportez les événements des 30 derniers jours en CSV pour vos tableaux de bord et vos analyses marketing." },
 ];
