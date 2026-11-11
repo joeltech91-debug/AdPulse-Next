@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { createHash } from "node:crypto";
-import type { RowDataPacket } from "mysql2/promise";
+import { after } from "next/server";
+import { locateClick } from "@/lib/geo";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 const BOT = /bot|crawler|spider|slurp|archiver|scanner|facebookexternalhit|facebot|meta-external|whatsapp|skypeuripreview|embedly|preview|curl|wget|python-requests|aiohttp|httpx|go-http-client|okhttp|headlesschrome|phantomjs|selenium|puppeteer|postman|insomnia/i;
 export function isBot(userAgent: string) { return !userAgent || BOT.test(userAgent); }
@@ -19,6 +21,7 @@ export async function recordClick(request: Request, slug: string, userId: string
   const dedupColumn = ip !== "unknown" ? "ip_hash" : "visitor_hash";
   const dedupHash = ip !== "unknown" ? ipHash : visitor;
   const conn = await db.getConnection();
+  let geoEventId: number | null = null;
   try {
     await conn.beginTransaction();
     const [subs] = await conn.execute<RowDataPacket[]>("SELECT clicks_limit, clicks_used FROM user_subscriptions WHERE user_id=? FOR UPDATE", [userId]);
@@ -39,8 +42,13 @@ export async function recordClick(request: Request, slug: string, userId: string
     const duplicate = recent.length > 0;
     const allowed = !bot && !duplicate && (Number(subscription.clicks_limit) < 0 || Number(subscription.clicks_used) < Number(subscription.clicks_limit));
     const url = new URL(request.url);
-    await conn.execute(`INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate)
-      VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?)`, [userId, slug, visitor, ipHash, ua.slice(0,512), request.headers.get("referer")?.slice(0,2000) || "", ...["utm_source","utm_medium","utm_campaign"].map(k => url.searchParams.get(k)?.slice(0,160) || ""), bot, duplicate]);
+    // Match the legacy tracker: keep bot/repeat signals, but do not create
+    // valid click events once the subscription quota has been exhausted.
+    if (bot || duplicate || allowed) {
+      const [inserted] = await conn.execute<ResultSetHeader>(`INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate,geo_country_code,geo_country_name,geo_continent_code)
+        VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?);
+      if (allowed) geoEventId = Number(inserted.insertId);
+    }
     if (allowed) {
       const mobile = /mobile|android|iphone|ipad/i.test(ua);
       await conn.execute("UPDATE link_Tracker_Link SET click_total=click_total+1, click_mobile=click_mobile+?, click_pc=click_pc+? WHERE slug=? AND user_id=?", [mobile ? 1 : 0, mobile ? 0 : 1, slug, userId]);
@@ -49,6 +57,24 @@ export async function recordClick(request: Request, slug: string, userId: string
     await conn.commit();
   } catch (error) { await conn.rollback(); throw error; }
   finally { conn.release(); }
+
+  // Resolve geolocation after the redirect response has been sent so a third-
+  // party lookup never adds latency to a visitor's click.
+  if (geoEventId) {
+    const eventId = geoEventId;
+    after(async () => {
+      try {
+        const geo = await locateClick(request, ip);
+        if (!geo.countryCode) return;
+        await db.execute(
+          "UPDATE tracker_events SET geo_country_code=?, geo_country_name=?, geo_continent_code=? WHERE id=? AND user_id=? AND event_type='click'",
+          [geo.countryCode, geo.countryName, geo.continentCode, eventId, userId]
+        );
+      } catch (error) {
+        console.error("click geolocation update failed", error);
+      }
+    });
+  }
 }
 export async function recordConversion(request: Request, slug: string, body: { event_name?: string; value?: number; currency?: string }) {
   const [links] = await db.execute<RowDataPacket[]>("SELECT l.user_id FROM link_Tracker_Link l WHERE l.slug=? LIMIT 1", [slug]);
