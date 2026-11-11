@@ -13,7 +13,7 @@ function createPool(): Pool {
 export const db = globalThis.adpulsePool ?? createPool();
 if (process.env.NODE_ENV !== "production") globalThis.adpulsePool = db;
 
-export async function rows<T extends RowDataPacket = RowDataPacket>(sql: string, values: unknown[] = []): Promise<T[]> {
+export async function rows<T extends RowDataPacket = RowDataPacket>(sql: string, values: any[] = []): Promise<T[]> {
   const [result] = await db.execute<T[]>(sql, values);
   return result;
 }
