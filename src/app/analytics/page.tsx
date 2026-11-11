@@ -59,7 +59,7 @@ export default function AnalyticsPage(){
       {!geography.countries.length&&<p className="text-sm text-base-content/60">Les pays seront affichés dès que leur localisation sera disponible.</p>}
      </div></div>
     </div>:<p className="rounded-xl bg-base-200 px-4 py-8 text-center text-sm text-base-content/65">Les données géographiques apparaîtront à mesure que vos prochains clics seront enregistrés.</p>}
-    <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise. L’adresse IP est utilisée temporairement pour déterminer le pays et n’est pas enregistrée en clair.</p>
+    <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise. Pour estimer le pays, l’adresse IP est transmise temporairement au service de géolocalisation ipwho.is ; elle n’est pas enregistrée en clair par AdPulse.</p>
    </section>
    <section className="mb-5 grid gap-5 lg:grid-cols-2">
     <article className={card}><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-primary">Tendance</p><h2 className="text-lg font-bold">Visites sur 14 jours</h2></div><span className="badge badge-outline">Clics valides</span></div>
