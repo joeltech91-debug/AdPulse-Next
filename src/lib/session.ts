@@ -8,6 +8,11 @@ const secret = () => {
   return new TextEncoder().encode(value);
 };
 
+/** Check before database writes so an incomplete deployment cannot create unusable accounts. */
+export function isSessionConfigured(): boolean {
+  return Boolean(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 32);
+}
+
 export async function createSession(userId: string) {
   const token = await new SignJWT({ sub: userId }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("30d").sign(secret());
   (await cookies()).set(COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
