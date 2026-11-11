@@ -6,3 +6,5 @@ export const PLANS = {
 } as const;
 
 export type PlanCode = keyof typeof PLANS;
+
+export function isPlanCode(value: string): value is PlanCode { return Object.prototype.hasOwnProperty.call(PLANS, value); }
