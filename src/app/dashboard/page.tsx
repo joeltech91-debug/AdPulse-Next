@@ -36,7 +36,7 @@ export default function DashboardPage(){
    }
    const quote=(value:unknown)=>`"${String(value??"").replaceAll('"','""')}"`;
    const rows=[["Destination","Lien court","Clics totaux","Clics mobile","Clics ordinateur","Slug"],...all.map(x=>[x.destinationUrl,x.generatedUrl,x.clicks,x.mobileClicks,x.desktopClicks,x.slug])];
-   const csv="\\uFEFF"+rows.map(row=>row.map(quote).join(";")).join("\\r\\n");
+   const csv="\uFEFF"+rows.map(row=>row.map(quote).join(";")).join("\r\n");
    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const href=URL.createObjectURL(blob);
    const a=document.createElement("a");a.href=href;a.download="adpulse-liens.csv";a.click();URL.revokeObjectURL(href);
    setNotice(`Export terminé : ${all.length} lien(s).`);
