@@ -1,5 +1,5 @@
-import GoogleSignIn from "@/components/google-sign-in";
 "use client";
+import GoogleSignIn from "@/components/google-sign-in";
 import {useState} from "react";import Link from "next/link";
 export default function RegisterPage(){const[name,setName]=useState(""),[firstName,setFirstName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[passwordConfirm,setPasswordConfirm]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
 async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const r=await fetch("/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,firstName,email,password,passwordConfirm})});const d=await r.json();if(!r.ok)throw new Error(d.error==="email_already_exists"?"Cette adresse e-mail est déjà utilisée.":d.error==="invalid_registration"?"Vérifiez les informations et utilisez un mot de passe d'au moins 10 caractères.":"Inscription indisponible.");location.href="/dashboard";}catch(e){setError(e instanceof Error?e.message:"Erreur");}finally{setBusy(false);}}
