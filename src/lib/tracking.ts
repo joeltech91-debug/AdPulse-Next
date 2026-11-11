@@ -9,15 +9,33 @@ function hashes(ip: string, ua: string) {
 }
 export async function recordClick(request: Request, slug: string, userId: string) {
   const ua = request.headers.get("user-agent") || "";
-  const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+  // Render/proxies may forward the client address through different headers.
+  // Do not include User-Agent in the short-window deduplication key: iOS link
+  // previews and the actual Safari navigation can use different UA strings.
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0].trim();
+  const ip = forwarded || request.headers.get("cf-connecting-ip")?.trim() ||
+    request.headers.get("x-real-ip")?.trim() || "unknown";
   const bot = isBot(ua), { visitor, ip: ipHash } = hashes(ip, ua);
+  const dedupColumn = ip !== "unknown" ? "ip_hash" : "visitor_hash";
+  const dedupHash = ip !== "unknown" ? ipHash : visitor;
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
     const [subs] = await conn.execute<RowDataPacket[]>("SELECT clicks_limit, clicks_used FROM user_subscriptions WHERE user_id=? FOR UPDATE", [userId]);
     const subscription = subs[0];
     if (!subscription) { await conn.rollback(); return; }
-    const [recent] = await conn.execute<RowDataPacket[]>("SELECT id FROM tracker_events WHERE user_id=? AND slug=? AND visitor_hash=? AND event_type='click' AND created_at >= NOW() - INTERVAL 30 MINUTE LIMIT 1", [userId, slug, visitor]);
+    // Count at most one click per source IP and short-link in a 30-second
+    // window. This absorbs duplicate redirect requests caused by mobile
+    // browsers/link previews even when their User-Agent changes between hits.
+    // When the proxy does not provide a client IP, fall back to the full
+    // visitor fingerprint rather than grouping every unknown visitor.
+    const [recent] = await conn.execute<RowDataPacket[]>(
+      `SELECT id FROM tracker_events
+       WHERE user_id=? AND slug=? AND ${dedupColumn}=? AND event_type='click'
+         AND created_at >= NOW() - INTERVAL 30 SECOND
+       LIMIT 1`,
+      [userId, slug, dedupHash]
+    );
     const duplicate = recent.length > 0;
     const allowed = !bot && !duplicate && (Number(subscription.clicks_limit) < 0 || Number(subscription.clicks_used) < Number(subscription.clicks_limit));
     const url = new URL(request.url);

@@ -9,7 +9,14 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     const [links] = await db.execute<RowDataPacket[]>("SELECT url,user_id FROM link_Tracker_Link WHERE slug=? LIMIT 1",[slug]);
     const link = links[0];
     if (!link) return NextResponse.redirect(new URL("/",request.url));
-    try { await recordClick(request,slug,String(link.user_id)); } catch (e) { console.error("click tracking failed",e); }
+    // Browser and framework prefetches are not intentional visits and must
+    // never consume a click or subscription quota.
+    const purpose = request.headers.get("purpose") || request.headers.get("sec-purpose") || "";
+    const isPrefetch = /prefetch/i.test(purpose) || request.headers.get("next-router-prefetch") === "1";
+    if (!isPrefetch) {
+      try { await recordClick(request,slug,String(link.user_id)); }
+      catch (e) { console.error("click tracking failed",e); }
+    }
     const target = new URL(String(link.url));
     if (!["http:","https:"].includes(target.protocol)) return NextResponse.redirect(new URL("/",request.url));
     return NextResponse.redirect(target,302);
