@@ -2,12 +2,13 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { createSession } from "@/lib/session";
+import { createSession, isSessionConfigured } from "@/lib/session";
 import { jsonError, privateJson } from "@/lib/http";
 
 const schema = z.object({ name: z.string().trim().min(1).max(250), firstName: z.string().trim().min(1).max(250), email: z.email().transform(v => v.toLowerCase()), password: z.string().min(10).max(128), passwordConfirm: z.string() }).refine(v => v.password === v.passwordConfirm, { path: ["passwordConfirm"] });
 export async function POST(request: Request) {
   try {
+    if (!isSessionConfigured()) return jsonError("service_not_configured", 503);
     const input = schema.parse(await request.json());
     const id = randomBytes(32).toString("hex");
     const hash = await bcrypt.hash(input.password, 12);
