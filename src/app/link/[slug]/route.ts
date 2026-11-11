@@ -19,6 +19,11 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
     }
     const target = new URL(String(link.url));
     if (!["http:","https:"].includes(target.protocol)) return NextResponse.redirect(new URL("/",request.url));
-    return NextResponse.redirect(target,302);
+    // A short-link redirect must always use the latest destination saved by
+    // the owner; prevent browsers and intermediary caches from reusing an old 302.
+    return NextResponse.redirect(target, {
+      status: 302,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate, private" }
+    });
   } catch (e) { console.error("short link lookup failed",e); return NextResponse.redirect(new URL("/",request.url)); }
 }
