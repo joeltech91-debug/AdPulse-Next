@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "AdPulse — Smart Link Tracking", template: "%s | AdPulse" },
-  description: "Raccourcissez vos liens, mesurez vos campagnes et comprenez votre audience.",
+  description: "Raccourcissez vos liens, mesurez vos campagnes et découvrez comment optimiser vos campagnes avec AdPulse.",
   applicationName: "AdPulse",
 };
 
