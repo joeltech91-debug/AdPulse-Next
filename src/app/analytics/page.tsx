@@ -8,8 +8,8 @@ type Conversion={slug:string;name:string;value:number;currency:string;at:string}
 type LinkItem={slug:string;target:string};
 type GeoCountry={code:string;name:string;clicks:number;percent:number};
 type GeoContinent={code:string;name:string;clicks:number;percent:number};
-type Geography={total:number;countries:GeoCountry[];continents:GeoContinent[];unknown:number;unknownPercent:number};
-const emptyGeo:Geography={total:0,countries:[],continents:[],unknown:0,unknownPercent:0};
+type Geography={total:number;countries:GeoCountry[];continents:GeoContinent[];unknown:number;unknownPercent:number;continentUnknown:number;continentUnknownPercent:number};
+const emptyGeo:Geography={total:0,countries:[],continents:[],unknown:0,unknownPercent:0,continentUnknown:0,continentUnknownPercent:0};
 const empty:Summary={clicks:0,clicks_30d:0,mobile:0,desktop:0,conversions:0,suspicious:0,daily:[]};
 const card="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm";
 function fmt(n:number){return Number(n||0).toLocaleString("fr-FR");}
@@ -51,6 +51,7 @@ export default function AnalyticsPage(){
     {geography.total>0?<div className="grid gap-6 lg:grid-cols-2">
      <div><h3 className="mb-3 font-semibold">Par continent</h3><div className="space-y-4">
       {geography.continents.map(item=><div key={item.code}><div className="mb-1 flex justify-between gap-3 text-sm"><span className="font-medium">{item.name}</span><span className="text-base-content/65">{item.percent}% · {fmt(item.clicks)}</span></div><div className="h-2.5 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-primary" style={{width:String(Math.min(100,item.percent))+"%"}}/></div></div>)}
+      {geography.continentUnknown>0&&<div><div className="mb-1 flex justify-between text-sm"><span className="font-medium text-base-content/65">Continent non déterminé</span><span className="text-base-content/65">{geography.continentUnknownPercent}% · {fmt(geography.continentUnknown)}</span></div><div className="h-2.5 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-base-300" style={{width:String(Math.min(100,geography.continentUnknownPercent))+"%"}}/></div></div>}
       {geography.unknown>0&&<div><div className="mb-1 flex justify-between text-sm"><span className="font-medium text-base-content/65">Pays non déterminé</span><span className="text-base-content/65">{geography.unknownPercent}% · {fmt(geography.unknown)}</span></div><div className="h-2.5 overflow-hidden rounded-full bg-base-200"><div className="h-full rounded-full bg-base-300" style={{width:String(Math.min(100,geography.unknownPercent))+"%"}}/></div></div>}
      </div></div>
      <div><h3 className="mb-3 font-semibold">Par pays</h3><div className="max-h-72 space-y-3 overflow-y-auto pr-1">
@@ -58,7 +59,7 @@ export default function AnalyticsPage(){
       {!geography.countries.length&&<p className="text-sm text-base-content/60">Les pays seront affichés dès que leur localisation sera disponible.</p>}
      </div></div>
     </div>:<p className="rounded-xl bg-base-200 px-4 py-8 text-center text-sm text-base-content/65">Les données géographiques apparaîtront à mesure que vos prochains clics seront enregistrés.</p>}
-    <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise.</p>
+    <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise. L’adresse IP est utilisée temporairement pour déterminer le pays et n’est pas enregistrée en clair.</p>
    </section>
    <section className="mb-5 grid gap-5 lg:grid-cols-2">
     <article className={card}><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-primary">Tendance</p><h2 className="text-lg font-bold">Visites sur 14 jours</h2></div><span className="badge badge-outline">Clics valides</span></div>
