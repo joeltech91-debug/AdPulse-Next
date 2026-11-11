@@ -1,14 +1,16 @@
 # Migration fonctionnelle — plan de travail
 
-## Phase 1 — socle
-- Application Next.js, TypeScript, Tailwind et DaisyUI.
-- Configuration serveur et conventions de sécurité.
-- Ne pas toucher à la base en production à ce stade.
+## Phase 1 — socle (initialisé)
+- Application Next.js App Router, TypeScript, Tailwind CSS 4 et DaisyUI 5.
+- Page d'accueil responsive et présentation des offres.
+- Configuration CI, variables d'environnement documentées et client Prisma singleton.
+- Aucun accès ni changement à la base de production pendant cette phase.
 
 ## Phase 2 — schéma et identité
 - Comparer les tables MySQL réelles et les modèles de l'ancien backend.
 - Introspecter avec Prisma sur une base de staging/copie.
 - Migrer inscription, connexion, cookie/session et connexion Google.
+- L'ancien frontend utilise actuellement `VITE_API_URL` et `VITE_GOOGLE_CLIENT_ID`; ces variables publiques seront remplacées par des variables serveur/public adaptées à Next.js après vérification des contrats.
 - Vérifier la compatibilité des mots de passe historiques avant toute bascule.
 
 ## Phase 3 — liens et tracking
