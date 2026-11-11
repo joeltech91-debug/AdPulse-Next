@@ -46,7 +46,7 @@ export async function recordClick(request: Request, slug: string, userId: string
     // valid click events once the subscription quota has been exhausted.
     if (bot || duplicate || allowed) {
       const [inserted] = await conn.execute<ResultSetHeader>(`INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate,geo_country_code,geo_country_name,geo_continent_code)
-        VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?)`, [userId, slug, visitor, ipHash, ua.slice(0,512), request.headers.get("referer")?.slice(0,2000) || "", ...["utm_source","utm_medium","utm_campaign"].map(k => url.searchParams.get(k)?.slice(0,160) || ""), bot, duplicate, null, null, null]);
+        VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?);
       if (allowed) geoEventId = Number(inserted.insertId);
     }
     if (allowed) {
