@@ -41,30 +41,36 @@ export async function PATCH(request: Request) {
   try {
     const input = schema.parse(await request.json()), target = normalizeTarget(input.url);
     if (target.length > 250) return jsonError("url_too_long",400);
-    // Check ownership separately: MySQL may report affectedRows=0 when the
-    // submitted destination is identical to the stored value.
+
+    // Capture the generated short URL before changing the destination.
+    // The short URL is stable; only the destination column is editable.
     const [existing] = await db.execute<RowDataPacket[]>(
-      "SELECT id FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
+      "SELECT id, urlGenerate FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
       [input.slug,userId]
     );
     if (!existing.length) return jsonError("link_not_found",404);
+    const originalShortUrl = String(existing[0].urlGenerate ?? "");
 
+    // Deliberately update only url; never update slug or urlGenerate.
     await db.execute(
       "UPDATE link_Tracker_Link SET url=? WHERE slug=? AND user_id=?",
       [target,input.slug,userId]
     );
 
-    // Read back the persisted value so the UI never reports success for a
-    // destination that was not actually saved.
+    // Verify both the new destination and the unchanged generated short URL.
     const [saved] = await db.execute<RowDataPacket[]>(
-      "SELECT url FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
+      "SELECT url, urlGenerate FROM link_Tracker_Link WHERE slug=? AND user_id=? LIMIT 1",
       [input.slug,userId]
     );
     if (!saved[0] || String(saved[0].url) !== target) {
       console.error("link destination update did not persist", { slug: input.slug, userId });
       return jsonError("link_update_failed",500);
     }
-    return privateJson({ updated: true, target: String(saved[0].url) });
+    if (String(saved[0].urlGenerate ?? "") !== originalShortUrl) {
+      console.error("generated short URL unexpectedly changed during destination update", { slug: input.slug, userId });
+      return jsonError("short_link_changed",500);
+    }
+    return privateJson({ updated: true, target: String(saved[0].url), shortUrl: originalShortUrl });
   } catch (e) { if (e instanceof z.ZodError) return jsonError("invalid_payload",400); if (e instanceof Error && e.message==="invalid_url") return jsonError("invalid_url",400); console.error(e); return jsonError("link_update_failed",500); }
 }
 export async function DELETE(request: Request) {
