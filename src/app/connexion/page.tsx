@@ -1,5 +1,5 @@
-import GoogleSignIn from "@/components/google-sign-in";
 "use client";
+import GoogleSignIn from "@/components/google-sign-in";
 import {useState} from "react";import Link from "next/link";
 export default function LoginPage(){const[email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
 async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const r=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw new Error(d.error==="invalid_credentials"?"E-mail ou mot de passe incorrect.":"Connexion indisponible.");location.href="/dashboard";}catch(e){setError(e instanceof Error?e.message:"Erreur");}finally{setBusy(false);}}
