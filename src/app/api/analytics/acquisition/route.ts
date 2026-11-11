@@ -35,8 +35,13 @@ export async function GET() {
       `SELECT slug,
         SUM(event_type='click' AND is_bot=0 AND is_duplicate=0) AS clicks,
         SUM(event_type='conversion' AND is_bot=0 AND is_duplicate=0) AS conversions,
-        COALESCE(SUM(CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN event_value ELSE 0 END),0) AS conversionValue,
-        MAX(currency) AS currency
+        CASE WHEN COUNT(DISTINCT CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN currency END)=1
+          THEN SUM(CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN event_value ELSE 0 END)
+          ELSE NULL END AS conversionValue,
+        CASE WHEN COUNT(DISTINCT CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN currency END)=1
+          THEN MAX(CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN currency END)
+          WHEN COUNT(DISTINCT CASE WHEN event_type='conversion' AND is_bot=0 AND is_duplicate=0 THEN currency END)>1
+          THEN 'Multi-devises' ELSE NULL END AS currency
        FROM tracker_events
        WHERE user_id=? AND created_at>=NOW()-INTERVAL 30 DAY
          AND (event_type='click' OR event_type='conversion')
