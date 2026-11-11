@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// IMPORTANT:
+// This file intentionally starts without guessed models.
+// Introspect the existing MySQL schema on a staging copy with:
+//   npx prisma db pull
+// Review the generated mappings before committing them.
+// Never run prisma migrate reset against the existing AdPulse database.
