@@ -1,8 +1,13 @@
 import { getSessionUserId } from "@/lib/session";
 const features = [
-  { icon: "↗", title: "Liens intelligents", text: "Créez des liens courts, propres et faciles à partager." },
-  { icon: "◷", title: "Suivi en temps réel", text: "Visualisez l'activité et les performances de vos campagnes." },
-  { icon: "⌁", title: "Analyses fiables", text: "Repérez les clics suspects et les visites répétitives pour mieux lire vos résultats." },
+  { icon: "↗", title: "Liens courts pilotables", text: "Centralisez vos liens de campagne, modifiez leur destination sans changer le lien partagé et suivez chaque performance." },
+  { icon: "◷", title: "Monitoring en direct", text: "Consultez les dernières visites, les événements et l'évolution du trafic avec une actualisation automatique." },
+  { icon: "◎", title: "Géographie de l'audience", text: "Identifiez les pays et continents qui génèrent vos clics pour mieux comprendre où se trouve votre audience." },
+  { icon: "⌁", title: "Attribution UTM", text: "Comparez les sources, supports, campagnes et domaines référents pour mesurer l'origine de votre trafic." },
+  { icon: "↗", title: "Conversions & valeur", text: "Suivez les achats, prospects, inscriptions et ajouts au panier, avec valeur et devise associées." },
+  { icon: "盾", title: "Détection anti-fraude", text: "Isolez les robots et répétitions détectés afin de distinguer le trafic valide des signaux suspects." },
+  { icon: "▥", title: "Analyse multi-appareils", text: "Comparez les clics mobiles et ordinateur, consultez les tendances sur 14 jours et les indicateurs sur 30 jours." },
+  { icon: "⇩", title: "Rapports exploitables", text: "Exportez les événements des 30 derniers jours en CSV pour vos tableaux de bord et vos analyses marketing." },
 ];
 
 const plans = [
@@ -33,12 +38,12 @@ export default async function HomePage() {
 
       <section className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-24 pt-16 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pt-24">
         <div>
-          <div className="badge badge-primary badge-outline mb-6 gap-2 rounded-full px-3 py-4">● La performance de vos liens, enfin mesurable</div>
+          <div className="badge badge-primary badge-outline mb-6 gap-2 rounded-full px-3 py-4">● Tracking intelligent · Analytics marketing · Anti-fraude</div>
           <h1 className="max-w-3xl text-5xl font-black leading-[1.06] tracking-tight sm:text-6xl lg:text-7xl">
             Chaque clic a une histoire. <span className="text-primary">Découvrez-la.</span>
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-base-content/65">
-            AdPulse transforme vos liens en données utiles : suivez vos campagnes, comprenez votre audience et prenez de meilleures décisions marketing.
+            AdPulse est une plateforme de tracking et d'analytics marketing : mesurez les clics, identifiez les sources d'acquisition, analysez les pays et appareils, suivez les conversions et détectez le trafic suspect depuis un seul tableau de bord.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href="/inscription" className="btn btn-primary btn-lg rounded-xl px-7">Créer mon compte gratuitement <span aria-hidden>→</span></a>
@@ -77,7 +82,7 @@ export default async function HomePage() {
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <p className="text-sm font-bold uppercase tracking-[.2em] text-primary">Tout au même endroit</p>
             <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Des données qui font avancer votre activité</h2>
-            <p className="mt-4 text-base-content/60">Les outils essentiels pour piloter vos liens et vos campagnes sans complexité.</p>
+            <p className="mt-4 text-base-content/60">Une chaîne de mesure complète pour les e-commerçants, marketeurs, agences et entreprises : de l'acquisition au clic, jusqu'à la conversion.</p>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {features.map((feature) => <article key={feature.title} className="card border border-base-300/70 bg-base-100 shadow-sm"><div className="card-body p-7"><span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary">{feature.icon}</span><h3 className="mt-3 text-xl font-bold">{feature.title}</h3><p className="leading-7 text-base-content/60">{feature.text}</p></div></article>)}
