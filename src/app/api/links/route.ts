@@ -25,7 +25,12 @@ export async function POST(request: Request) {
     const input = createSchema.parse(await request.json());
     const target = normalizeTarget(input.url);
     if (target.length > 250) return jsonError("url_too_long", 400);
-    return privateJson(await createLinkForUser(userId,target), 201);
+    const forwardedHost=request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+    const host=forwardedHost||request.headers.get("host")||new URL(request.url).host;
+    const forwardedProto=request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+    const protocol=forwardedProto==="http"||forwardedProto==="https"?forwardedProto:new URL(request.url).protocol.replace(":","");
+    const publicBaseUrl=`${protocol}://${host}`;
+    return privateJson(await createLinkForUser(userId,target,publicBaseUrl), 201);
   } catch (e) {
     if (e instanceof z.ZodError) return jsonError("invalid_url", 400);
     const code = e instanceof Error ? e.message : "";
