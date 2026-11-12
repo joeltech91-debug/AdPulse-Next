@@ -59,8 +59,8 @@ export async function recordClick(request: Request, slug: string, userId: string
     if (bot || duplicate || allowed) {
       const [inserted] = await conn.execute<ResultSetHeader>(
         `INSERT INTO tracker_events
-          (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate,geo_country_code,geo_country_name,geo_continent_code)
-         VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?)`,
+          (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate)
+         VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?)`,
         [
           userId,
           slug,
@@ -73,9 +73,6 @@ export async function recordClick(request: Request, slug: string, userId: string
           url.searchParams.get("utm_campaign") || "",
           bot ? 1 : 0,
           duplicate ? 1 : 0,
-          null,
-          null,
-          null,
         ]
       );
       if (allowed) geoEventId = Number(inserted.insertId);
