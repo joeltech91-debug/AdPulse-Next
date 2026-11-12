@@ -22,12 +22,24 @@ export async function GET() {
       "SELECT COUNT(*) AS total FROM tracker_events WHERE user_id=? AND event_type='click' AND is_bot=0 AND is_duplicate=0",
       [userId]
     );
-    const [rows] = await db.execute<RowDataPacket[]>(
-      "SELECT geo_country_code AS countryCode, geo_country_name AS countryName, geo_continent_code AS continentCode, COUNT(*) AS clicks FROM tracker_events WHERE user_id=? AND event_type='click' AND is_bot=0 AND is_duplicate=0 GROUP BY geo_country_code, geo_country_name, geo_continent_code ORDER BY clicks DESC",
-      [userId]
-    );
-
     const total = Number(totals[0]?.total || 0);
+    let rows: RowDataPacket[];
+    try {
+      const [geoRows] = await db.execute<RowDataPacket[]>(
+        "SELECT geo_country_code AS countryCode, geo_country_name AS countryName, geo_continent_code AS continentCode, COUNT(*) AS clicks FROM tracker_events WHERE user_id=? AND event_type='click' AND is_bot=0 AND is_duplicate=0 GROUP BY geo_country_code, geo_country_name, geo_continent_code ORDER BY clicks DESC",
+        [userId]
+      );
+      rows = geoRows;
+    } catch (error) {
+      // Geography columns are added by a separate migration. Until it is
+      // applied, keep Analytics usable and report these clicks as unknown.
+      if ((error as { code?: string })?.code !== "ER_BAD_FIELD_ERROR") throw error;
+      return privateJson({
+        total, countries: [], continents: [],
+        unknown: total, unknownPercent: total ? 100 : 0,
+        continentUnknown: total, continentUnknownPercent: total ? 100 : 0,
+      });
+    }
     const countries = rows.filter(row => row.countryCode).map(row => ({
       code: String(row.countryCode),
       name: String(row.countryName || row.countryCode),
