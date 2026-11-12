@@ -45,8 +45,27 @@ export async function recordClick(request: Request, slug: string, userId: string
     // Match the legacy tracker: keep bot/repeat signals, but do not create
     // valid click events once the subscription quota has been exhausted.
     if (bot || duplicate || allowed) {
-      const [inserted] = await conn.execute<ResultSetHeader>(`INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate,geo_country_code,geo_country_name,geo_continent_code)
-        VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?);
+      const [inserted] = await conn.execute<ResultSetHeader>(
+        `INSERT INTO tracker_events
+          (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate,geo_country_code,geo_country_name,geo_continent_code)
+         VALUES (?,?,'click','',0,'',?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+          userId,
+          slug,
+          visitor,
+          ipHash,
+          ua.slice(0, 512),
+          request.headers.get("referer")?.slice(0, 2000) || "",
+          url.searchParams.get("utm_source") || "",
+          url.searchParams.get("utm_medium") || "",
+          url.searchParams.get("utm_campaign") || "",
+          bot ? 1 : 0,
+          duplicate ? 1 : 0,
+          null,
+          null,
+          null,
+        ]
+      );
       if (allowed) geoEventId = Number(inserted.insertId);
     }
     if (allowed) {
@@ -85,7 +104,10 @@ export async function recordConversion(request: Request, slug: string, body: { e
   const ua = request.headers.get("user-agent") || "";
   const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
   const { visitor, ip: ipHash } = hashes(ip, ua);
-  const [result] = await db.execute(`INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate)
-    VALUES (?,?,'conversion',?,?,?,?,?,?,?,?,?,?,0,0)`, [userId, slug, (body.event_name || "purchase").slice(0,80), Math.max(0, Number(body.value || 0)), (body.currency || "").toUpperCase().slice(0,8), visitor, ipHash, ua.slice(0,512), request.headers.get("referer")?.slice(0,2000) || "", "", "", ""]);
+  await db.execute(
+    `INSERT INTO tracker_events (user_id,slug,event_type,event_name,event_value,currency,visitor_hash,ip_hash,user_agent,referrer,utm_source,utm_medium,utm_campaign,is_bot,is_duplicate)
+     VALUES (?,?,'conversion',?,?,?,?,?,?,?,?,?,?,0,0)`,
+    [userId, slug, (body.event_name || "purchase").slice(0, 80), Math.max(0, Number(body.value || 0)), (body.currency || "").toUpperCase().slice(0, 8), visitor, ipHash, ua.slice(0, 512), request.headers.get("referer")?.slice(0, 2000) || "", "", "", ""]
+  );
   return "recorded" as const;
 }
