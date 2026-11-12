@@ -23,8 +23,7 @@ export default async function HomePage() {
     <main className="min-h-screen overflow-hidden">
       <header className="navbar mx-auto max-w-7xl px-5 py-5 lg:px-8">
         <a href="/" className="flex items-center gap-3 text-xl font-black tracking-tight">
-          <span className="grid size-10 place-items-center rounded-xl bg-primary text-lg text-primary-content">g</span>
-          getAdPulse
+          <img src="/adpulse-logo.svg" alt="AdPulse" className="h-10 w-auto" />
         </a>
         <nav className="ml-auto hidden items-center gap-8 text-sm font-semibold text-base-content/65 md:flex">
           <a href="#features" className="hover:text-primary">Fonctionnalités</a>
