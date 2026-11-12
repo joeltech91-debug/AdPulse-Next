@@ -11,6 +11,12 @@ export async function ensureUserSubscription(userId: string) {
   await db.execute(`UPDATE user_subscriptions SET plan='free',status='active',links_limit=1,
     clicks_limit=30,clicks_used=0,analytics_enabled=FALSE,period_started_at=NOW(),expires_at=NULL
     WHERE user_id=? AND plan<>'free' AND expires_at IS NOT NULL AND expires_at<=NOW()`,[userId]);
+  // Each click allowance runs on a rolling 30-day cycle. Free accounts renew
+  // automatically; paid accounts renew their quota when a new paid period is activated.
+  await db.execute(`UPDATE user_subscriptions
+    SET clicks_used=0,period_started_at=NOW()
+    WHERE user_id=? AND (period_started_at IS NULL OR period_started_at<=NOW()-INTERVAL 30 DAY)
+      AND (expires_at IS NULL OR expires_at>NOW())`,[userId]);
   await db.execute(`UPDATE user_Tracker_Link u JOIN user_subscriptions s ON s.user_id=u.id
     SET u.status=CASE WHEN s.plan='standard' THEN 2 WHEN s.plan='advanced' THEN 3
       WHEN s.plan='unlimited' THEN 4 ELSE 1 END WHERE u.id=?`,[userId]);

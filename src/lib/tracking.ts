@@ -24,6 +24,18 @@ export async function recordClick(request: Request, slug: string, userId: string
   let geoEventId: number | null = null;
   try {
     await conn.beginTransaction();
+    // Downgrade an expired paid plan before evaluating this redirect's quota.
+    await conn.execute(`UPDATE user_subscriptions
+      SET plan='free',status='active',links_limit=1,clicks_limit=30,clicks_used=0,
+          analytics_enabled=FALSE,period_started_at=NOW(),expires_at=NULL
+      WHERE user_id=? AND plan<>'free' AND expires_at IS NOT NULL AND expires_at<=NOW()`,[userId]);
+    await conn.execute(`UPDATE user_Tracker_Link u JOIN user_subscriptions s ON s.user_id=u.id
+      SET u.status=1 WHERE u.id=? AND s.plan='free'`,[userId]);
+    // Free plans renew every 30 days; paid plans renew on successful checkout.
+    await conn.execute(`UPDATE user_subscriptions
+      SET clicks_used=0,period_started_at=NOW()
+      WHERE user_id=? AND (period_started_at IS NULL OR period_started_at<=NOW()-INTERVAL 30 DAY)
+        AND (expires_at IS NULL OR expires_at>NOW())`,[userId]);
     const [subs] = await conn.execute<RowDataPacket[]>("SELECT clicks_limit, clicks_used FROM user_subscriptions WHERE user_id=? FOR UPDATE", [userId]);
     const subscription = subs[0];
     if (!subscription) { await conn.rollback(); return; }
