@@ -1,5 +1,5 @@
 "use client";
-import {useCallback,useEffect,useMemo,useState} from "react";
+import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
 type Summary={clicks:number;clicks_30d:number;mobile:number;desktop:number;conversions:number;suspicious:number;daily:{date:string;clicks:number;conversions:number}[]};
 type Event={slug:string;type:string;name:string;at:string;bot:boolean;duplicate:boolean;utm_source?:string;referrer?:string};
@@ -22,18 +22,25 @@ export default function AnalyticsPage(){
  const [summary,setSummary]=useState<Summary>(empty),[geography,setGeography]=useState<Geography>(emptyGeo),[acquisition,setAcquisition]=useState<Acquisition>(emptyAcquisition),[live,setLive]=useState<Event[]>([]),[fraud,setFraud]=useState<Alert[]>([]),[conversions,setConversions]=useState<Conversion[]>([]),[links,setLinks]=useState<LinkItem[]>([]),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[lastUpdated,setLastUpdated]=useState("");
  const [form,setForm]=useState({slug:"",event_name:"purchase",value:"0",currency:"USD"});
  const rate=useMemo(()=>summary.clicks_30d?((summary.conversions/summary.clicks_30d)*100).toFixed(1):"0.0",[summary]);
- const load=useCallback(async()=>{
-  try{
-   const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions","/api/analytics/geography","/api/analytics/acquisition"];
-   const responses=await Promise.all(paths.map(p=>fetch(p,{cache:"no-store"})));
-   if(responses.some(r=>r.status===401)){location.href="/connexion";return;}
-   if(responses.some(r=>r.status===403)){setError("Les Analytics sont disponibles à partir du forfait Avancé à 19 $.");setLoading(false);return;}
-   const failed=responses.find(r=>!r.ok);if(failed)throw new Error("Certaines données Analytics sont indisponibles. Réessayez dans quelques instants.");
-   const [s,l,f,c,g,a]=await Promise.all(responses.map(r=>r.json()));
-   setSummary({...empty,...s,daily:s.daily||[]});setGeography({...emptyGeo,...g});setAcquisition({...emptyAcquisition,...a});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
-   setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");
-  }catch(e){setError(e instanceof Error?e.message:"Impossible de charger les analyses.");}
-  finally{setLoading(false);}
+ const loadPromise=useRef<Promise<void>|null>(null);
+ const load=useCallback(()=>{
+  if(loadPromise.current)return loadPromise.current;
+  const request=(async()=>{
+   try{
+    const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions","/api/analytics/geography","/api/analytics/acquisition"];
+    const responses=await Promise.all(paths.map(p=>fetch(p,{cache:"no-store"})));
+    if(responses.some(r=>r.status===401)){location.href="/connexion";return;}
+    if(responses.some(r=>r.status===403)){setError("Les Analytics sont disponibles à partir du forfait Avancé à 19 $.");return;}
+    const failed=responses.find(r=>!r.ok);
+    if(failed)throw new Error(`Chargement des Analytics impossible (HTTP ${failed.status}). Réessayez dans quelques instants.`);
+    const [s,l,f,c,g,a]=await Promise.all(responses.map(r=>r.json()));
+    setSummary({...empty,...s,daily:s.daily||[]});setGeography({...emptyGeo,...g});setAcquisition({...emptyAcquisition,...a});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
+    setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");
+   }catch(e){setError(e instanceof Error?e.message:"Impossible de charger les analyses.");}
+   finally{setLoading(false);}
+  })().finally(()=>{loadPromise.current=null;});
+  loadPromise.current=request;
+  return request;
  },[]);
  useEffect(()=>{let active=true;fetch("/api/links",{cache:"no-store"}).then(async r=>{if(r.status===401){location.href="/connexion";return;}if(r.ok){const d=await r.json();if(active)setLinks((d.links||[]).map((x:LinkItem)=>({slug:x.slug,target:x.target})));}}).catch(()=>{});load();const timer=window.setInterval(()=>{if(document.visibilityState==="visible")load();},15000);return()=>{active=false;clearInterval(timer);};},[load]);
  async function record(e:React.FormEvent){e.preventDefault();setSaving(true);setNotice("");try{const r=await fetch("/api/analytics/conversions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slug:form.slug,event_name:form.event_name,value:Number(form.value),currency:form.currency})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error==="analytics_plan_required"?"Votre formule ne donne pas accès aux conversions.":"Enregistrement de la conversion impossible.");setNotice("Conversion enregistrée.");setForm(v=>({...v,value:"0"}));await load();}catch(e){setNotice(e instanceof Error?e.message:"Erreur");}finally{setSaving(false);}}
