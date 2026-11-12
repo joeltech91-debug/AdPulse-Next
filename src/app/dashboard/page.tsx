@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 type Item={id:number;destinationUrl:string;generatedUrl:string;slug:string;clicks:number;mobileClicks:number;desktopClicks:number};
@@ -7,7 +7,22 @@ type Account={user:{name:string;email:string};subscription:{plan:string;links_li
 const field="input input-bordered h-12 w-full min-w-0 rounded-xl bg-base-100";
 export default function DashboardPage(){
  const [account,setAccount]=useState<Account|null>(null),[links,setLinks]=useState<Item[]>([]),[url,setUrl]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[refreshing,setRefreshing]=useState(false),[lastUpdated,setLastUpdated]=useState(""),[editing,setEditing]=useState<number|null>(null),[editUrl,setEditUrl]=useState(""),[utmBase,setUtmBase]=useState(""),[utmSource,setUtmSource]=useState(""),[utmMedium,setUtmMedium]=useState("social"),[utmCampaign,setUtmCampaign]=useState("");
- const load=useCallback(async()=>{const [a,l]=await Promise.all([fetch("/api/me",{cache:"no-store"}),fetch("/api/links",{cache:"no-store"})]);if(a.status===401||l.status===401){location.href="/connexion";return;}if(!a.ok||!l.ok)throw new Error("Impossible de charger votre espace.");const ad=await a.json(),ld=await l.json();setAccount(ad);setLinks(ld.links||[]);setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");},[]);
+ const loadPromise=useRef<Promise<void>|null>(null);
+ const load=useCallback(()=>{
+  if(loadPromise.current)return loadPromise.current;
+  const request=(async()=>{
+   const [a,l]=await Promise.all([fetch("/api/me",{cache:"no-store"}),fetch("/api/links",{cache:"no-store"})]);
+   if(a.status===401||l.status===401){location.href="/connexion";return;}
+   if(!a.ok||!l.ok){
+    const failed=!a.ok?a:l;
+    throw new Error(`Chargement impossible (HTTP ${failed.status}). Vérifiez la connexion au serveur puis réessayez.`);
+   }
+   const [ad,ld]=await Promise.all([a.json(),l.json()]);
+   setAccount(ad);setLinks(ld.links||[]);setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");
+  })().finally(()=>{loadPromise.current=null;});
+  loadPromise.current=request;
+  return request;
+ },[]);
  useEffect(()=>{let active=true;const refresh=()=>{if(active&&document.visibilityState==="visible"){setRefreshing(true);load().catch(e=>setError(e.message)).finally(()=>setRefreshing(false));}};refresh();const timer=window.setInterval(refresh,15000);const onVisible=()=>{if(document.visibilityState==="visible")refresh();};document.addEventListener("visibilitychange",onVisible);return()=>{active=false;window.clearInterval(timer);document.removeEventListener("visibilitychange",onVisible);};},[load]);
  async function create(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");try{const r=await fetch("/api/links",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});const d=await r.json();if(!r.ok)throw new Error(d.error==="link_limit_reached"?"Limite de liens atteinte.":d.error||"Création impossible.");setUrl("");setNotice("Lien créé avec succès.");await load();}catch(e){setError(e instanceof Error?e.message:"Erreur");}finally{setBusy(false);}}
  async function saveEdit(id:number){setBusy(true);setError("");try{const r=await fetch("/api/links",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,destinationUrl:editUrl})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error==="invalid_url"?"Adresse URL invalide.":d.error==="link_not_found"?"Lien introuvable.":"Modification impossible.");setEditing(null);setNotice("Destination mise à jour. Le lien court est inchangé.");await load();}catch(e){setError(e instanceof Error?e.message:"Erreur");}finally{setBusy(false);}}
