@@ -43,7 +43,7 @@ export default async function HomePage() {
             Chaque clic peut faire grandir votre activité. <span className="text-primary">Mesurez. Comprenez. Convertissez.</span>
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-base-content/65">
-            getAdPulse — Transformez chaque clic en décision rentable. La plateforme de tracking et d'analytics marketing qui vous aide à mesurer les clics, identifiez les sources d'acquisition, analysez les pays et appareils, suivez les conversions et détectez le trafic suspect depuis un seul tableau de bord.
+            getAdPulse — Transformez chaque clic en décision rentable. Mesurez vos clics, identifiez vos sources d'acquisition, analysez les pays et les appareils, suivez vos conversions et détectez le trafic suspect depuis un seul tableau de bord.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href="/inscription" className="btn btn-primary btn-lg rounded-xl px-7">Créer mon compte gratuitement <span aria-hidden>→</span></a>
