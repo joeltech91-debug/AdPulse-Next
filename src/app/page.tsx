@@ -39,6 +39,7 @@ export default async function HomePage() {
       <section className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-24 pt-16 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pt-24">
         <div>
           <div className="badge badge-primary badge-outline mb-6 gap-2 rounded-full px-3 py-4">● Tracking intelligent · Analytics marketing · Anti-fraude</div>
+          <p className="mb-4 text-sm font-extrabold uppercase tracking-[.22em] text-primary">Vos clics. Vos données. Votre croissance.</p>
           <h1 className="max-w-3xl text-5xl font-black leading-[1.06] tracking-tight sm:text-6xl lg:text-7xl">
             Chaque clic peut faire grandir votre activité. <span className="text-primary">Mesurez. Comprenez. Convertissez.</span>
           </h1>
@@ -99,7 +100,7 @@ export default async function HomePage() {
 
       <footer className="border-t border-base-300 bg-base-100">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-base-content/55 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span className="font-bold text-base-content">getAdPulse</span><div className="flex flex-wrap items-center gap-4"><a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a><span>© {new Date().getFullYear()} getAdPulse. Tous droits réservés.</span></div>
+          <div className="flex flex-col gap-1"><span className="font-bold text-base-content">getAdPulse</span><span className="text-xs">Une meilleure lecture de vos performances, à chaque clic.</span></div><div className="flex flex-wrap items-center gap-4"><a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a><a href="mailto:joeltech91@gmail.com" className="hover:text-primary">Besoin d’aide ? joeltech91@gmail.com</a><span>© {new Date().getFullYear()} getAdPulse. Tous droits réservés.</span></div>
         </div>
       </footer>
     </main>
