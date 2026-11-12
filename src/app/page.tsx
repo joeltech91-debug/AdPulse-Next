@@ -23,8 +23,8 @@ export default async function HomePage() {
     <main className="min-h-screen overflow-hidden">
       <header className="navbar mx-auto max-w-7xl px-5 py-5 lg:px-8">
         <a href="/" className="flex items-center gap-3 text-xl font-black tracking-tight">
-          <span className="grid size-10 place-items-center rounded-xl bg-primary text-lg text-primary-content">A</span>
-          AdPulse
+          <span className="grid size-10 place-items-center rounded-xl bg-primary text-lg text-primary-content">g</span>
+          getAdPulse
         </a>
         <nav className="ml-auto hidden items-center gap-8 text-sm font-semibold text-base-content/65 md:flex">
           <a href="#features" className="hover:text-primary">Fonctionnalités</a>
@@ -40,14 +40,14 @@ export default async function HomePage() {
         <div>
           <div className="badge badge-primary badge-outline mb-6 gap-2 rounded-full px-3 py-4">● Tracking intelligent · Analytics marketing · Anti-fraude</div>
           <h1 className="max-w-3xl text-5xl font-black leading-[1.06] tracking-tight sm:text-6xl lg:text-7xl">
-            Chaque clic a une histoire. <span className="text-primary">Découvrez-la.</span>
+            Chaque clic peut faire grandir votre activité. <span className="text-primary">Mesurez. Comprenez. Convertissez.</span>
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-base-content/65">
-            AdPulse est une plateforme de tracking et d'analytics marketing : mesurez les clics, identifiez les sources d'acquisition, analysez les pays et appareils, suivez les conversions et détectez le trafic suspect depuis un seul tableau de bord.
+            getAdPulse — Transformez chaque clic en décision rentable. Mesurez vos clics, identifiez vos sources d'acquisition, analysez les pays et les appareils, suivez vos conversions et détectez le trafic suspect depuis un seul tableau de bord.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href="/inscription" className="btn btn-primary btn-lg rounded-xl px-7">Créer mon compte gratuitement <span aria-hidden>→</span></a>
-            <a href="#features" className="btn btn-ghost btn-lg rounded-xl">Découvrir AdPulse</a>
+            <a href="#features" className="btn btn-ghost btn-lg rounded-xl">Découvrir getAdPulse</a>
           </div>
           <p className="mt-4 text-xs text-base-content/50">Sans carte bancaire · Mise en place simple</p>
         </div>
@@ -99,7 +99,7 @@ export default async function HomePage() {
 
       <footer className="border-t border-base-300 bg-base-100">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-base-content/55 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span className="font-bold text-base-content">AdPulse</span><div className="flex flex-wrap items-center gap-4"><a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a><span>© {new Date().getFullYear()} AdPulse. Tous droits réservés.</span></div>
+          <span className="font-bold text-base-content">getAdPulse</span><div className="flex flex-wrap items-center gap-4"><a href="/guide-optimisation" className="hover:text-primary">Guide d'optimisation</a><span>© {new Date().getFullYear()} getAdPulse. Tous droits réservés.</span></div>
         </div>
       </footer>
     </main>

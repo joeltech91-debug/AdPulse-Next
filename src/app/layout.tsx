@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "AdPulse — Smart Link Tracking", template: "%s | AdPulse" },
-  description: "Raccourcissez vos liens, mesurez vos campagnes et découvrez comment optimiser vos campagnes avec AdPulse.",
-  applicationName: "AdPulse",
+  title: { default: "getAdPulse — Smart Link Tracking", template: "%s | getAdPulse" },
+  description: "Transformez chaque clic en décision rentable avec getAdPulse : tracking de liens, analytics marketing, attribution et suivi des conversions.",
+  applicationName: "getAdPulse",
 };
 
 export const viewport: Viewport = {
