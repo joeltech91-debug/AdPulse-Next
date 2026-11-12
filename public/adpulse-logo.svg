@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="title desc">
+<title id="title">AdPulse</title><desc id="desc">AdPulse marketing analytics logo with an upward growth chart.</desc>
+<defs><linearGradient id="pulse" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5125E8"/><stop offset="1" stop-color="#9B6BFF"/></linearGradient></defs>
+<g transform="translate(28 25)"><path d="M18 178V137Q18 128 26 123L78 91V178Z" fill="url(#pulse)"/><path d="M91 178V99Q91 90 99 84L151 47V178Z" fill="url(#pulse)"/><path d="M164 178V58Q164 49 172 43L224 7V178Z" fill="url(#pulse)"/><path d="M35 115L104 75L166 90L232 23" fill="none" stroke="#B99CFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M195 23H232V60" fill="none" stroke="#B99CFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="300" y="166" font-family="Inter,Arial,sans-serif" font-size="112" font-weight="750" letter-spacing="-5" fill="#11152D">Ad</text><text x="437" y="166" font-family="Inter,Arial,sans-serif" font-size="112" font-weight="750" letter-spacing="-5" fill="url(#pulse)">Pulse</text></svg>
