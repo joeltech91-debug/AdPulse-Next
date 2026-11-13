@@ -77,6 +77,41 @@ export default async function HomePage() {
         </div>
       </section>
 
+
+      <section aria-label="Résultats des campagnes publicitaires" className="border-y border-base-300/70 bg-base-200/50 py-16">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[.2em] text-primary">La performance, chiffres à l'appui</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Chaque budget mérite des résultats mesurables.</h2>
+            <p className="mt-4 leading-7 text-base-content/65">Deux campagnes publicitaires récentes de getAdPulse ont généré des visites à faible coût. Voici leurs résultats cumulés, tels qu'affichés dans les statistiques publicitaires.</p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues de pages de destination</p><p className="mt-2 text-3xl font-black text-primary">273</p><p className="mt-1 text-xs text-base-content/45">143 + 130 sur les deux campagnes</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues des publicités</p><p className="mt-2 text-3xl font-black">26 556</p><p className="mt-1 text-xs text-base-content/45">17 162 + 9 394</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Dépenses publicitaires</p><p className="mt-2 text-3xl font-black">5,54 $</p><p className="mt-1 text-xs text-base-content/45">Dépenses cumulées affichées</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Coût moyen par visite</p><p className="mt-2 text-3xl font-black text-success">0,02 $</p><p className="mt-1 text-xs text-base-content/45">Calculé sur les 273 visites</p></article>
+          </div>
+          <p className="mt-4 text-center text-xs text-base-content/45">Résultats de deux campagnes spécifiques ; les performances peuvent varier selon l'audience, le budget et la période.</p>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
+        <div className="overflow-hidden rounded-3xl bg-primary px-7 py-10 text-primary-content shadow-xl sm:px-12 sm:py-14">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[.2em] text-primary-content/70">La communauté getAdPulse</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Près de 1 000 e-commerçants et marketeurs ont déjà approuvé getAdPulse.</h2>
+            <p className="mt-5 text-base leading-7 text-primary-content/85">Rejoignez celles et ceux qui veulent mieux comprendre leurs campagnes, suivre leurs liens et prendre leurs décisions à partir de données concrètes.</p>
+            <a href="/inscription" className="btn mt-8 rounded-xl border-0 bg-base-100 px-7 text-primary hover:bg-base-200">Rejoindre getAdPulse <span aria-hidden>→</span></a>
+          </div>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <article className="card border border-base-300/70 bg-base-100 shadow-sm"><div className="card-body p-6"><span className="text-2xl text-primary" aria-hidden>↗</span><h3 className="text-lg font-bold">« Je sais d'où viennent mes clics. »</h3><p className="text-sm leading-6 text-base-content/60">Centralisez vos liens et identifiez les campagnes, sources et supports qui attirent votre audience.</p></div></article>
+          <article className="card border border-base-300/70 bg-base-100 shadow-sm"><div className="card-body p-6"><span className="text-2xl text-primary" aria-hidden>▥</span><h3 className="text-lg font-bold">« Je comprends mieux mes performances. »</h3><p className="text-sm leading-6 text-base-content/60">Analysez les visites, les appareils et la géographie de votre trafic dans un seul tableau de bord.</p></div></article>
+          <article className="card border border-base-300/70 bg-base-100 shadow-sm"><div className="card-body p-6"><span className="text-2xl text-primary" aria-hidden>✓</span><h3 className="text-lg font-bold">« Je prends mes décisions avec des données. »</h3><p className="text-sm leading-6 text-base-content/60">Suivez vos conversions, repérez les signaux suspects et ajustez vos actions marketing avec plus de clarté.</p></div></article>
+        </div>
+        <p className="mt-3 text-center text-xs text-base-content/40">Messages illustratifs présentant les bénéfices de la plateforme, et non des témoignages clients nominatifs.</p>
+      </section>
+
       <section id="features" className="bg-base-100 py-20">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="mx-auto mb-12 max-w-2xl text-center">
