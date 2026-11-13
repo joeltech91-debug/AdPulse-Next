@@ -1,6 +1,7 @@
 "use client";
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
+type CampaignMetric={id:number;name:string;objective:string;spend:number;impressions:number;slug:string;clicks:number;conversions:number;revenue:number;ctr:number;cpc:number;cpa:number;roas:number|null};
 type Summary={clicks:number;clicks_30d:number;mobile:number;desktop:number;conversions:number;suspicious:number;daily:{date:string;clicks:number;conversions:number}[]};
 type Event={slug:string;type:string;name:string;at:string;bot:boolean;duplicate:boolean;utm_source?:string;referrer?:string};
 type Alert={slug:string;total:number;bots:number;repeated:number;last_seen:string};
@@ -19,7 +20,7 @@ const card="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm";
 function fmt(n:number){return Number(n||0).toLocaleString("fr-FR");}
 function date(v:string){return new Date(v).toLocaleString("fr-FR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}
 export default function AnalyticsPage(){
- const [summary,setSummary]=useState<Summary>(empty),[geography,setGeography]=useState<Geography>(emptyGeo),[acquisition,setAcquisition]=useState<Acquisition>(emptyAcquisition),[live,setLive]=useState<Event[]>([]),[fraud,setFraud]=useState<Alert[]>([]),[conversions,setConversions]=useState<Conversion[]>([]),[links,setLinks]=useState<LinkItem[]>([]),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[lastUpdated,setLastUpdated]=useState("");
+ const [campaignMetrics,setCampaignMetrics]=useState<CampaignMetric[]>([]),[summary,setSummary]=useState<Summary>(empty),[geography,setGeography]=useState<Geography>(emptyGeo),[acquisition,setAcquisition]=useState<Acquisition>(emptyAcquisition),[live,setLive]=useState<Event[]>([]),[fraud,setFraud]=useState<Alert[]>([]),[conversions,setConversions]=useState<Conversion[]>([]),[links,setLinks]=useState<LinkItem[]>([]),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[lastUpdated,setLastUpdated]=useState("");
  const [form,setForm]=useState({slug:"",event_name:"purchase",value:"0",currency:"USD"});
  const rate=useMemo(()=>summary.clicks_30d?((summary.conversions/summary.clicks_30d)*100).toFixed(1):"0.0",[summary]);
  const loadPromise=useRef<Promise<void>|null>(null);
@@ -27,14 +28,14 @@ export default function AnalyticsPage(){
   if(loadPromise.current)return loadPromise.current;
   const request=(async()=>{
    try{
-    const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions","/api/analytics/geography","/api/analytics/acquisition"];
+    const paths=["/api/analytics/summary","/api/analytics/live","/api/analytics/fraud","/api/analytics/conversions","/api/analytics/geography","/api/analytics/acquisition","/api/campaigns/metrics"];
     const responses=await Promise.all(paths.map(p=>fetch(p,{cache:"no-store"})));
     if(responses.some(r=>r.status===401)){location.href="/connexion";return;}
     if(responses.some(r=>r.status===403)){setError("Les Analytics sont disponibles à partir du forfait Avancé à 19 $.");return;}
     const failed=responses.find(r=>!r.ok);
     if(failed)throw new Error(`Chargement des Analytics impossible (HTTP ${failed.status}). Réessayez dans quelques instants.`);
-    const [s,l,f,c,g,a]=await Promise.all(responses.map(r=>r.json()));
-    setSummary({...empty,...s,daily:s.daily||[]});setGeography({...emptyGeo,...g});setAcquisition({...emptyAcquisition,...a});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
+    const [s,l,f,c,g,a,cm]=await Promise.all(responses.map(r=>r.json()));
+    setCampaignMetrics(cm.campaigns||[]);setSummary({...empty,...s,daily:s.daily||[]});setGeography({...emptyGeo,...g});setAcquisition({...emptyAcquisition,...a});setLive(l.events||[]);setFraud(f.alerts||[]);setConversions(c.conversions||[]);
     setLastUpdated(new Date().toLocaleTimeString("fr-FR"));setError("");
    }catch(e){setError(e instanceof Error?e.message:"Impossible de charger les analyses.");}
    finally{setLoading(false);}
@@ -71,6 +72,11 @@ export default function AnalyticsPage(){
      </div></div>
     </div>:<p className="rounded-xl bg-base-200 px-4 py-8 text-center text-sm text-base-content/65">Les données géographiques apparaîtront à mesure que vos prochains clics seront enregistrés.</p>}
     <p className="mt-4 text-xs text-base-content/50">Les pourcentages sont calculés sur l'ensemble des clics valides. Les clics historiques antérieurs à cette fonction et les localisations indisponibles sont indiqués comme non déterminés. La localisation est approximative (pays), jamais une adresse précise. Pour estimer le pays, l’adresse IP est transmise temporairement au service de géolocalisation ipwho.is ; elle n’est pas enregistrée en clair par AdPulse.</p>
+   </section>
+   <section className={card+" mb-5"}>
+    <div className="mb-4"><p className="text-xs font-bold uppercase tracking-widest text-primary">Pilotage publicitaire</p><h2 className="text-xl font-bold">Efficacité de vos campagnes</h2><p className="mt-1 text-sm text-base-content/60">CTR, coût par clic, coût par acquisition et retour sur dépenses, calculés à partir de vos données.</p></div>
+    {campaignMetrics.length?<div className="space-y-4">{campaignMetrics.map(c=><article key={c.id} className="rounded-xl border border-base-300 p-4"><div className="mb-3 flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-bold">{c.name}</h3><p className="text-xs text-base-content/55">Objectif : {({click:"Clics / Trafic",lead:"Prospects",message:"Messages",conversion:"Ventes / Conversions",awareness:"Notoriété"} as Record<string,string>)[c.objective]||c.objective} · Lien : {c.slug}</p></div><span className="badge badge-primary badge-outline">{c.spend.toFixed(2)} $ dépensés</span></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6"><div><p className="text-xs text-base-content/55">Impressions</p><strong className="text-lg">{fmt(c.impressions)}</strong></div><div><p className="text-xs text-base-content/55">Clics valides</p><strong className="text-lg">{fmt(c.clicks)}</strong></div><div><p className="text-xs text-base-content/55">CTR</p><strong className="text-lg">{c.ctr.toFixed(2)} %</strong></div><div><p className="text-xs text-base-content/55">CPC</p><strong className="text-lg">{c.cpc.toFixed(2)} $</strong></div><div><p className="text-xs text-base-content/55">Conversions</p><strong className="text-lg">{fmt(c.conversions)}</strong></div><div><p className="text-xs text-base-content/55">CPA</p><strong className="text-lg">{c.conversions?c.cpa.toFixed(2)+" $":"—"}</strong></div></div><div className="mt-3 flex flex-wrap gap-4 border-t border-base-200 pt-3 text-sm"><span>Taux de conversion : <strong>{c.clicks?(c.conversions/c.clicks*100).toFixed(2):"0.00"} %</strong></span><span>ROAS : <strong>{c.roas===null?"Ajoutez la valeur des conversions":c.roas.toFixed(2)+"×"}</strong></span></div>{!c.impressions&&<p className="mt-2 text-xs text-warning">Ajoutez les impressions réelles pour obtenir un CTR fiable.</p>}</article>)}</div>:<p className="rounded-xl bg-base-200 px-4 py-8 text-center text-sm text-base-content/65">Ajoutez une campagne depuis le tableau de bord pour commencer à mesurer son efficacité.</p>}
+    <p className="mt-3 text-xs text-base-content/50">CTR = clics ÷ impressions. CPC = dépenses ÷ clics. CPA = dépenses ÷ conversions. ROAS = valeur des conversions ÷ dépenses. Les clics sont comptés depuis la création de la campagne ; impressions et dépenses sont saisies manuellement.</p>
    </section>
    <section className={card+" mb-5"}>
     <div className="mb-4"><p className="text-xs font-bold uppercase tracking-widest text-primary">Attribution marketing</p><h2 className="text-xl font-bold">Performance des campagnes et des liens</h2><p className="mt-1 text-sm text-base-content/60">Sources UTM, supports, campagnes et domaines référents · 30 derniers jours.</p></div>
