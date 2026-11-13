@@ -20,7 +20,7 @@ const CREATE_CAMPAIGNS_TABLE = `CREATE TABLE IF NOT EXISTS ad_campaigns (
 
 export async function POST(request: Request) {
   const configuredSecret = process.env.ADPULSE_MIGRATION_SECRET;
-  const suppliedSecret = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") ?? "";
+  const suppliedSecret = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
 
   if (!configuredSecret || configuredSecret.length < 32) {
     return NextResponse.json({ error: "migration_not_configured" }, { status: 503 });
