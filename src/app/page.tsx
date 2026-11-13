@@ -81,17 +81,19 @@ export default async function HomePage() {
       <section aria-label="Résultats des campagnes publicitaires" className="border-y border-base-300/70 bg-base-200/50 py-16">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[.2em] text-primary">La performance, chiffres à l'appui</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Chaque budget mérite des résultats mesurables.</h2>
-            <p className="mt-4 leading-7 text-base-content/65">Deux campagnes publicitaires récentes de getAdPulse ont généré des visites à faible coût. Voici leurs résultats cumulés, tels qu'affichés dans les statistiques publicitaires.</p>
+            <p className="text-sm font-bold uppercase tracking-[.2em] text-primary">Nos campagnes en chiffres</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Nous mesurons aussi nos propres campagnes.</h2>
+            <p className="mt-4 leading-7 text-base-content/65">Chez getAdPulse, nous croyons aux décisions basées sur les données. Nous analysons nos propres publicités pour comprendre nos performances et améliorer nos actions. Voici le bilan des 30 derniers jours.</p>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues de pages de destination</p><p className="mt-2 text-3xl font-black text-primary">273</p><p className="mt-1 text-xs text-base-content/45">143 + 130 sur les deux campagnes</p></article>
-            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues des publicités</p><p className="mt-2 text-3xl font-black">26 556</p><p className="mt-1 text-xs text-base-content/45">17 162 + 9 394</p></article>
-            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Dépenses publicitaires</p><p className="mt-2 text-3xl font-black">5,54 $</p><p className="mt-1 text-xs text-base-content/45">Dépenses cumulées affichées</p></article>
-            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Coût moyen par visite</p><p className="mt-2 text-3xl font-black text-success">0,02 $</p><p className="mt-1 text-xs text-base-content/45">Calculé sur les 273 visites</p></article>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Dépenses publicitaires</p><p className="mt-2 text-3xl font-black">9,31 $</p><p className="mt-1 text-xs text-base-content/45">Sur 9 publicités · 30 derniers jours</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues des publicités</p><p className="mt-2 text-3xl font-black text-primary">35,7 K</p><p className="mt-1 text-xs text-base-content/45">Toutes les campagnes affichées</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Personnes touchées</p><p className="mt-2 text-3xl font-black">24,4 K</p><p className="mt-1 text-xs text-base-content/45">Couverture totale</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Interactions avec les publications</p><p className="mt-2 text-3xl font-black">1,08 K</p><p className="mt-1 text-xs text-base-content/45">Interactions enregistrées</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Conversations démarrées</p><p className="mt-2 text-3xl font-black">1,06 K</p><p className="mt-1 text-xs text-base-content/45">Conversations par message</p></article>
+            <article className="rounded-2xl border border-base-300/70 bg-base-100 p-6 shadow-sm"><p className="text-sm font-semibold text-base-content/55">Vues de pages de destination</p><p className="mt-2 text-3xl font-black text-success">273</p><p className="mt-1 text-xs text-base-content/45">Sur les deux campagnes détaillées précédemment</p></article>
           </div>
-          <p className="mt-4 text-center text-xs text-base-content/45">Résultats de deux campagnes spécifiques ; les performances peuvent varier selon l'audience, le budget et la période.</p>
+          <p className="mt-4 text-center text-xs text-base-content/45">Bilan publicitaire communiqué depuis les statistiques de la plateforme sur les 30 derniers jours. Les 273 vues de pages de destination concernent deux campagnes spécifiques et ne représentent pas nécessairement les 9 publicités.</p>
         </div>
       </section>
 
