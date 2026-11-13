@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS ad_campaigns (
+ id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ user_id VARCHAR(255) NOT NULL,
+ name VARCHAR(120) NOT NULL,
+ objective VARCHAR(24) NOT NULL,
+ spend DECIMAL(12,2) NOT NULL DEFAULT 0,
+ impressions BIGINT UNSIGNED NOT NULL DEFAULT 0,
+ slug VARCHAR(250) NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ INDEX idx_ad_campaigns_user_date (user_id, created_at),
+ INDEX idx_ad_campaigns_user_slug (user_id, slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
