@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS ad_campaigns (
  slug VARCHAR(250) NOT NULL,
  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
  INDEX idx_ad_campaigns_user_date (user_id, created_at),
- INDEX idx_ad_campaigns_user_slug (user_id, slug)
+ UNIQUE KEY uq_ad_campaigns_user_slug (user_id, slug)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
