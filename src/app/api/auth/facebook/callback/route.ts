@@ -11,11 +11,20 @@ export const dynamic = "force-dynamic";
 
 type FacebookProfile = { id?: string; name?: string; email?: string };
 
-function loginError(request: Request, code: string) {
-  return NextResponse.redirect(new URL(`/connexion?error=${encodeURIComponent(code)}`, request.url));
+function getFacebookRedirectUri(request: Request) {
+  return process.env.FACEBOOK_REDIRECT_URI
+    || (process.env.NODE_ENV === "production"
+      ? "https://getadpulse.site/api/auth/facebook/callback"
+      : new URL("/api/auth/facebook/callback", request.url).toString());
+}
+
+function loginError(origin: string, code: string) {
+  return NextResponse.redirect(new URL(`/connexion?error=${encodeURIComponent(code)}`, origin));
 }
 
 export async function GET(request: Request) {
+  const redirectUri = getFacebookRedirectUri(request);
+  const appOrigin = new URL(redirectUri).origin;
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const returnedState = url.searchParams.get("state");
@@ -23,16 +32,15 @@ export async function GET(request: Request) {
   const expectedState = jar.get("adpulse_facebook_oauth_state")?.value;
   jar.delete("adpulse_facebook_oauth_state");
 
-  if (url.searchParams.has("error")) return loginError(request, "facebook_cancelled");
-  if (!code || !returnedState || !expectedState) return loginError(request, "facebook_invalid_response");
+  if (url.searchParams.has("error")) return loginError(appOrigin, "facebook_cancelled");
+  if (!code || !returnedState || !expectedState) return loginError(appOrigin, "facebook_invalid_response");
   const a = Buffer.from(returnedState);
   const b = Buffer.from(expectedState);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return loginError(request, "facebook_invalid_state");
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return loginError(appOrigin, "facebook_invalid_state");
 
   const appId = process.env.FACEBOOK_APP_ID;
   const appSecret = process.env.FACEBOOK_APP_SECRET;
-  const redirectUri = process.env.FACEBOOK_REDIRECT_URI || new URL("/api/auth/facebook/callback", request.url).toString();
-  if (!appId || !appSecret) return loginError(request, "facebook_not_configured");
+  if (!appId || !appSecret) return loginError(appOrigin, "facebook_not_configured");
 
   try {
     const tokenUrl = new URL("https://graph.facebook.com/oauth/access_token");
@@ -42,17 +50,17 @@ export async function GET(request: Request) {
     tokenUrl.searchParams.set("code", code);
 
     const tokenResponse = await fetch(tokenUrl, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-    if (!tokenResponse.ok) return loginError(request, "facebook_token_failed");
+    if (!tokenResponse.ok) return loginError(appOrigin, "facebook_token_failed");
     const tokenData = await tokenResponse.json() as { access_token?: string };
-    if (!tokenData.access_token) return loginError(request, "facebook_token_failed");
+    if (!tokenData.access_token) return loginError(appOrigin, "facebook_token_failed");
 
     const profileUrl = new URL("https://graph.facebook.com/me");
     profileUrl.searchParams.set("fields", "id,name,email");
     profileUrl.searchParams.set("access_token", tokenData.access_token);
     const profileResponse = await fetch(profileUrl, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-    if (!profileResponse.ok) return loginError(request, "facebook_profile_failed");
+    if (!profileResponse.ok) return loginError(appOrigin, "facebook_profile_failed");
     const profile = await profileResponse.json() as FacebookProfile;
-    if (!profile.id || !profile.email) return loginError(request, "facebook_email_required");
+    if (!profile.id || !profile.email) return loginError(appOrigin, "facebook_email_required");
 
     const email = profile.email.trim().toLowerCase();
     const [users] = await db.execute<RowDataPacket[]>(
@@ -89,9 +97,9 @@ export async function GET(request: Request) {
 
     await ensureUserSubscription(userId);
     await createSession(userId);
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", appOrigin));
   } catch (error) {
     console.error("Facebook authentication failed", error);
-    return loginError(request, "facebook_login_failed");
+    return loginError(appOrigin, "facebook_login_failed");
   }
 }
