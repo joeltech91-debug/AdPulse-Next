@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/session";
+
+export const metadata: Metadata = {
+  title: "Tracking de liens et analyse de campagnes publicitaires",
+  description: "Raccourcissez vos liens, suivez les clics et conversions, comparez vos campagnes et analysez vos dépenses marketing avec AdPulse.",
+  alternates: { canonical: "/" },
+};
 const features = [
   { icon: "↗", title: "Liens courts pilotables", text: "Centralisez vos liens de campagne, modifiez leur destination sans changer le lien partagé et suivez chaque performance." },
   { icon: "◷", title: "Monitoring en direct", text: "Consultez les dernières visites, les événements et l'évolution du trafic avec une actualisation automatique." },
@@ -21,6 +28,37 @@ export default async function HomePage() {
   const signedIn = Boolean(await getSessionUserId());
   return (
     <main className="min-h-screen overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "AdPulse",
+              url: "https://getadpulse.site",
+              logo: "https://getadpulse.site/icon.svg",
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "AdPulse",
+              url: "https://getadpulse.site",
+              inLanguage: "fr",
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "AdPulse",
+              url: "https://getadpulse.site",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description: "Plateforme de suivi de liens et d'analyse des performances publicitaires.",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+            },
+          ]).replace(/</g, "\\u003c"),
+        }}
+      />
       <header className="navbar mx-auto max-w-7xl px-5 py-5 lg:px-8">
         <a href="/" className="flex items-center gap-3 text-xl font-black tracking-tight">
           <img src="/adpulse-logo.svg" alt="AdPulse" className="h-10 w-auto" />
