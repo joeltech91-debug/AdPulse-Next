@@ -1,6 +1,7 @@
 "use client";
 
 import GoogleSignIn from "@/components/google-sign-in";
+import FacebookSignIn from "@/components/facebook-sign-in";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -102,6 +103,7 @@ export default function RegisterPage() {
 
         <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400"><span className="h-px flex-1 bg-slate-200" />ou<span className="h-px flex-1 bg-slate-200" /></div>
         <GoogleSignIn />
+        <div className="mt-3"><FacebookSignIn /></div>
         <p className="mt-5 text-center text-sm text-slate-600">Déjà inscrit ? <Link className="font-bold text-violet-700 underline-offset-4 hover:underline" href="/connexion">Se connecter</Link></p>
         <p className="mt-4 text-center text-xs leading-5 text-slate-400">En créant un compte, vous pourrez commencer avec l'offre gratuite AdPulse.</p>
       </section>
