@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     if (!userId) {
       userId = randomBytes(32).toString("hex");
       const fullName = (profile.name || email).trim().slice(0, 501);
-      const parts = fullName.split(/\\s+/);
+      const parts = fullName.split(/\s+/);
       const firstName = parts.pop() || email;
       const lastName = parts.join(" ") || firstName;
       const connection = await db.getConnection();
