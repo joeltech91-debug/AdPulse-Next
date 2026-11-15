@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Guide d'optimisation marketing et tracking de liens",
+  description: "Apprenez à suivre vos liens, comparer vos sources de trafic et optimiser vos campagnes publicitaires avec les conseils pratiques AdPulse.",
+  alternates: { canonical: "/guide-optimisation" },
+};
+
 const cases = [
   {
     number: "01",
