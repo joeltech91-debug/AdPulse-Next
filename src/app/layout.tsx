@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     languages: { "fr": "/" },
   },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }, { url: "/icon.svg", type: "image/svg+xml" }],
   },
   openGraph: {
     type: "website",
